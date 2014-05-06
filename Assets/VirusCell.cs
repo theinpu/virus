@@ -8,6 +8,7 @@ public class VirusCell : MonoBehaviour {
 	public float Endurance = 1;
 	public float Strength = 1;
 	public float Dexterity = 1;
+	public float ReproductiveSpeed = 1f;
 
 	public bool CanReproduce = false;
 	public bool CanChangeHealth = true;
@@ -25,7 +26,7 @@ public class VirusCell : MonoBehaviour {
 	private float agingChangeRate = 1f;
 	private Vector2 reproductiveAgeBounds;
 
-	private float mutationFactor;
+	private float mutationFactor = 1f;
 
 	private float reproductiveTimer = 0;
 	private float attackTimer = 0;
@@ -33,6 +34,8 @@ public class VirusCell : MonoBehaviour {
 	private float agingTimer = 0;
 
 	private PlayerNumber playerNumber;
+
+	private int parentCount = 0;
 
 	#endregion
 
@@ -68,6 +71,12 @@ public class VirusCell : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		if(parentCount > 0) {
+			Strength = (float)Strength/parentCount;
+			Endurance /= (float)Endurance/parentCount;
+			Dexterity /= (float)Dexterity/parentCount;
+		}
+
 		maxAge = Strength + Endurance * 2f;
 		reproductiveAgeBounds = new Vector2(1f, maxAge - 1f);
 	}
@@ -84,7 +93,13 @@ public class VirusCell : MonoBehaviour {
 			agingTimer += Time.deltaTime;
 		}
 		if(reproductiveAgeBounds.x <= age && age <= reproductiveAgeBounds.y) {
-			CanReproduce = true;
+			if(reproductiveTimer > ReproductiveSpeed) {
+				reproductiveTimer = 0;
+				CanReproduce = true;
+			} else {
+				CanReproduce = false;
+			}
+			reproductiveTimer += Time.deltaTime;
 		} else {
 			CanReproduce = false;
 		}
@@ -92,10 +107,27 @@ public class VirusCell : MonoBehaviour {
 
 	public void Mutate (VirusCell parentCell)
 	{
-		Strength = parentCell.Strength;
-		Endurance = parentCell.Endurance;
-		Dexterity = parentCell.Dexterity;
+		parentCount++;
 		PlayerNumber = parentCell.PlayerNumber;
+		mutationFactor = parentCell.mutationFactor;
+		if(Random.Range(0f, 1f) > 0.995f) {
+			mutationFactor += Random.Range(-mutationFactor/2f, mutationFactor/2f);
+		}
+
+		if(Strength == 1) 
+			Strength = parentCell.Strength;
+		else
+			Strength += parentCell.Strength * mutationFactor;
+
+		if(Endurance == 1) 
+			Endurance = parentCell.Endurance;
+		else
+			Endurance += parentCell.Endurance * mutationFactor;
+
+		if(Dexterity == 1) 
+			Dexterity = parentCell.Dexterity;
+		else
+			Dexterity += parentCell.Dexterity * mutationFactor;
 	}
 	
 	public void Die ()

@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class GameScript : MonoBehaviour {
-
+	
 	public GameObject Cell;
 	public int Width;
 	public int Height;
@@ -13,7 +13,6 @@ public class GameScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		Debug.Log("Start");
 		map = new VirusCell[Width, Height];
 		InitFirstPopulation();
 		Time.timeScale = TimeScale;
@@ -24,57 +23,59 @@ public class GameScript : MonoBehaviour {
 		//if(map == null) return;
 		for(int x = 0; x < Width; x++) {
 			for(int y = 0; y < Height; y++) {
-				if(map[x, y] != null) {
-					var neighborhoodCount = GetNeighborhoodCount(x, y);
-					Debug.Log(neighborhoodCount);
-					/*if(map[x, y].CanReproduce && neighborhoodCount < 3) {
-						TryReproduce(x, y, map[x, y]);
+				var neighborhoodCount = GetNeighborhoodCount(x, y);
+				if(map[x, y] == null) {
+					if(neighborhoodCount < 3 && neighborhoodCount >= 1) {
+						TryReproduce(x, y);
 					}
-					/*if(neighborhoodCount > 6) {
+				} 
+				else {
+					if(neighborhoodCount > 3) {
 						map[x, y].Die();
 						map[x, y] = null;
-					}*/
+					}
 				}
 			}
 		}
 	}
 
 	private void InitFirstPopulation() {
-		var halfWidth = Width / 2f;
-		var halfHeight = Height / 2f;
+		var halfWidth = Width / 2;
+		var halfHeight = Height / 2;
 		for(int x = 0; x < Width; x++) {
 			for(int y = 0; y < Height; y++) {
 				map [x, y] = null;
-				if(x == 0 && y == halfHeight) {
-					map [x, y] = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (-halfWidth, 0f, 0f), Quaternion.identity)).GetComponent(typeof(VirusCell));
+				if(x <= 1 && y == halfHeight) {
+					map [x, y] = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth, 0f, 0f), Quaternion.identity)).GetComponent(typeof(VirusCell));
 					map[x, y].PlayerNumber = PlayerNumber.One;
 				}
-				if(x == Width - 1 && y == halfHeight) {
-					map [x, y] = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (halfWidth, 0f, 0f), Quaternion.identity)).GetComponent(typeof(VirusCell));
+				if(x >= Width - 2 && y == halfHeight) {
+					map [x, y] = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth - 1, 0f, 0f), Quaternion.identity)).GetComponent(typeof(VirusCell));
 					map[x, y].PlayerNumber = PlayerNumber.Two;
 				}
 			}
 		}
 	}
 
-	private void TryReproduce (int x, int y, VirusCell cell)
+	private void TryReproduce (int x, int y)
 	{
-		var freeCells = new ArrayList();
-		//Debug.Log("try reproduce");
+		var parents = new ArrayList();
 		for(int i = x - 1; i <= x + 1; i++) {
 			for(int j = y - 1; j <= y + 1; j++) {
-				if(i >= 0 && i < Width && j >= 0 && j < Height) {
-					if(map[i, j] == null) {
-						freeCells.Add(new Vector2(i, j));
+				if(i >= 0 && i < Width && j >= 0 && j < Height && i != x && j != y) {
+					if(map[i, j] != null) {
+						if(map[i, j].CanReproduce) {
+							parents.Add(map[i, j]);
+						}
 					}
 				}
 			}
 		}
-		if(freeCells.Count > 0) {
-			var cellId = Random.Range(0, freeCells.Count);
-			var newX = (int)((Vector2)freeCells[cellId]).x;
-			var newY = (int)((Vector2)freeCells[cellId]).y;
-			BirnCell(newX, newY, cell);
+		if(parents.Count > 0) {
+			var newCell = BirnCell(x, y);
+			for(int i = 0; i < parents.Count; i++) {
+				newCell.Mutate((VirusCell)parents[i]);
+			}
 		}
 	}
 
@@ -82,7 +83,7 @@ public class GameScript : MonoBehaviour {
 		var neighborhoodCount = 0;
 		for(int i = x - 1; i <= x + 1; i++) {
 			for(int j = y - 1; j <= y + 1; j++) {
-				if(i >= 0 && i < Width && j >= 0 && j < Height) {
+				if(i >= 0 && i < Width && j >= 0 && j < Height && i != x && j != y) {
 					if(map[i, j] != null) {
 						neighborhoodCount++;
 					}
@@ -92,13 +93,12 @@ public class GameScript : MonoBehaviour {
 		return neighborhoodCount;
 	}
 
-	private void BirnCell (int x, int y, VirusCell parentCell)
+	private VirusCell BirnCell (int x, int y)
 	{
-		//Debug.Log("birth at [" + x.ToString() + ", " + y.ToString() + "]");
 		var halfWidth = Width / 2f;
 		var halfHeight = Height / 2f;
 		var childCell = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth, 0f, y - halfHeight), Quaternion.identity)).GetComponent(typeof(VirusCell));
-		childCell.Mutate(parentCell);
 		map[x, y] = childCell;
+		return childCell;
 	}
 }
