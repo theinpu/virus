@@ -21,7 +21,7 @@ public class VirusCell : MonoBehaviour {
 	private float health;
 	private float healthChangeRate = 0;
 
-	private float age;
+	private float age = 0;
 	private float maxAge;
 	private float agingChangeRate = 1f;
 	private Vector2 reproductiveAgeBounds;
@@ -67,17 +67,16 @@ public class VirusCell : MonoBehaviour {
 		} 
 	}
 
+	public GameScript GameField {get;set;}
+	public int X {get;set;}
+	public int Y {get;set;}
+
 	#endregion
 
 	// Use this for initialization
 	void Start () {
-		if(parentCount > 0) {
-			Strength = (float)Strength/parentCount;
-			Endurance /= (float)Endurance/parentCount;
-			Dexterity /= (float)Dexterity/parentCount;
-		}
-
 		maxAge = Strength + Endurance * 2f;
+		health = Strength * 0.5f + Endurance * 3f;
 		reproductiveAgeBounds = new Vector2(1f, maxAge - 1f);
 	}
 	
@@ -85,51 +84,39 @@ public class VirusCell : MonoBehaviour {
 	void Update () {
 		if(age > maxAge) {
 			Die();
-		} else {
-			if(agingTimer > 1f) {
-				agingTimer = 0;
-				age += agingChangeRate;
-			}
-			agingTimer += Time.deltaTime;
+			return;
 		}
-		if(reproductiveAgeBounds.x <= age && age <= reproductiveAgeBounds.y) {
-			if(reproductiveTimer > ReproductiveSpeed) {
+		if(agingTimer > 1f) {
+			agingTimer = 0;
+			age += agingChangeRate;
+		}
+		agingTimer += Time.deltaTime;
+
+		var freeCells = GameField.GetFreeCells(X, Y);
+		//Debug.Log(freeCells.Length);
+		if(freeCells.Length > 5 && freeCells.Length < 8) {
+			if(reproductiveTimer > ReproductiveSpeed && age > reproductiveAgeBounds.x && age < reproductiveAgeBounds.y) {
 				reproductiveTimer = 0;
-				CanReproduce = true;
-			} else {
-				CanReproduce = false;
+				Reproduce(freeCells);
 			}
 			reproductiveTimer += Time.deltaTime;
-		} else {
-			CanReproduce = false;
 		}
 	}
 
-	public void Mutate (VirusCell parentCell)
+	void Reproduce (Point[] freeCells)
 	{
-		parentCount++;
-		PlayerNumber = parentCell.PlayerNumber;
-		mutationFactor = parentCell.mutationFactor;
-		if(Random.Range(0f, 1f) > 0.995f) {
-			mutationFactor += Random.Range(-mutationFactor/2f, mutationFactor/2f);
-		}
+		var id = Random.Range(0, freeCells.Length);
+		var point = freeCells[id];
+		var halfWidth = GameField.Width / 2;
+		var halfHeight = GameField.Height / 2;
 
-		if(Strength == 1) 
-			Strength = parentCell.Strength;
-		else
-			Strength += parentCell.Strength * mutationFactor;
-
-		if(Endurance == 1) 
-			Endurance = parentCell.Endurance;
-		else
-			Endurance += parentCell.Endurance * mutationFactor;
-
-		if(Dexterity == 1) 
-			Dexterity = parentCell.Dexterity;
-		else
-			Dexterity += parentCell.Dexterity * mutationFactor;
+		var cell = (VirusCell)((GameObject)Instantiate (GameField.Cell, new Vector3 (point.X - halfWidth, 0f, point.Y - halfHeight), Quaternion.identity)).GetComponent (typeof(VirusCell));
+		cell.PlayerNumber = playerNumber;
+		cell.X = point.X;
+		cell.Y = point.Y;
+		GameField.AddCell(cell);
 	}
-	
+
 	public void Die ()
 	{
 		Destroy(gameObject);
