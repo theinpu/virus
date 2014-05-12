@@ -47,6 +47,7 @@ public class VirusCell : MonoBehaviour {
 	private float attackSpeed;
 
 	private PlayerNumber playerNumber;
+	private Neighbours neighbours;
 
 	private float reproductiveAges;
 
@@ -115,19 +116,21 @@ public class VirusCell : MonoBehaviour {
 		}
 		agingTimer += Time.deltaTime;
 
-		var freeCells = GameField.GetFreeCells(X, Y);
-		if(freeCells.Length >= 3 && freeCells.Length < 8) {
+		neighbours = GameField.GetNeighbours (X, Y);
+		var emptyLength = neighbours.FreeCells.Length;
+		var enemyLength = neighbours.EnemyCells.Length;
+
+		if(emptyLength >= 3 && emptyLength < 8) {
 			if(reproductiveTimer > (2f - ReproductiveSpeed) && age > reproductiveAgeBounds.x && age < reproductiveAgeBounds.y) {
 				reproductiveTimer = 0;
-				Reproduce(freeCells);
+				Reproduce(neighbours.FreeCells);
 			}
 			reproductiveTimer += Time.deltaTime;
 		}
 
-		var enemyCells = GameField.GetEnemyCells(this);
-		if(enemyCells.Length > 0) {
+		if(enemyLength > 0) {
 			if(attackTimer > attackSpeed) {
-				Attack(enemyCells);
+				Attack(neighbours.EnemyCells);
 			}
 			attackTimer += Time.deltaTime;
 		}
@@ -138,25 +141,29 @@ public class VirusCell : MonoBehaviour {
 		var id = Random.Range(0, freeCells.Length);
 		var point = freeCells[id];
 
-		var halfWidth = GameField.Width / 2;
-		var halfHeight = GameField.Height / 2;
+		//------------------------------------------------------------------------------
+		// TODO нужно разобраться как хранить инфу о клетке в виде одного числа 
+		// (смещения в векторе virusGrid) при этом умея инстанцировать его в new Vector3
+		//------------------------------------------------------------------------------
 
-		var cell = (VirusCell)((GameObject)Instantiate (GameField.Cell, new Vector3 (point.X - halfWidth, 0f, point.Y - halfHeight), Quaternion.identity)).GetComponent (typeof(VirusCell));
+		var cell = (VirusCell)((GameObject)Instantiate (GameField.Cell, new Vector3 (point.X - GameField.halfWidth, 0f, point.Y - GameField.halfHeight), Quaternion.identity)).GetComponent (typeof(VirusCell));
 		cell.PlayerNumber = playerNumber;
 		cell.X = point.X;
 		cell.Y = point.Y;
 		GameField.AddCell(cell);
 	}
 
-	void Attack (VirusCell[] enemyCells)
+	void Attack (Point[] enemyCells)// здесь избавиться можно прямо сейчас
 	{
-		var id = Random.Range(0, enemyCells.Length);
+		var point = enemyCells [Random.Range(0, enemyCells.Length)];
 		var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
 		var timeValue = ageCoef / reproductiveAges;
+
 		var strengthCoef = ReproductionStrengthCurve.Evaluate(timeValue);
 		damage = (Strength * 2f + Dexterity) * strengthCoef;
 		if(damage > 0f && !float.IsNaN(damage)) {
-			enemyCells[id].TakeDamage(damage);
+			var gridPoint = point.Y * GameField.Width + point.X;
+			GameField.virusGrid[gridPoint].TakeDamage(damage);
 		}
 	}
 

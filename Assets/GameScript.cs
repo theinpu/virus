@@ -6,14 +6,21 @@ public class GameScript : MonoBehaviour {
 	public GameObject Cell;
 	public int Width;
 	public int Height;
+	
+	public float halfWidth;
+	public float halfHeight;
 
 	public float TimeScale = 1f;
 
-	private VirusCell[,] virusGrid;
+	public VirusCell[] virusGrid;
 
 	// Use this for initialization
 	void Start () {
-		virusGrid = new VirusCell[Width, Height];
+		virusGrid = new VirusCell[Height* Width];
+
+		halfWidth = Width / 2f;
+		halfHeight = Height / 2f;
+
 		InitFirstPopulation();
 		Time.timeScale = TimeScale;
 	}
@@ -26,54 +33,56 @@ public class GameScript : MonoBehaviour {
 		Time.timeScale = GUI.HorizontalSlider(new Rect(10, 10, 200, 30), Time.timeScale, 0.5F, 30.0F);
 	}
     
-    public Point[] GetFreeCells(int x, int y) {
-		var points = new ArrayList();
+	public Neighbours GetNeighbours(int x, int y)
+	{
 		int i, j;
-		for(i = x - 1; i <= x + 1; i++){
-			for(j = y - 1; j <= y + 1; j++){
-				if(i == x && j == y) continue;
-				if(i >= 0 && i < Width && j >= 0 && j < Height) {
-					if(virusGrid[i, j] == null) {
-						points.Add(new Point(i, j));
-					}
-				}
-			}
-		}
-		return (Point[])points.ToArray(typeof(Point));
-	}
+		Neighbours neighbours = new Neighbours{};
+		var freeCells = new ArrayList();
+		var enemyCells = new ArrayList();
 
-	public VirusCell[] GetEnemyCells(VirusCell damageDealer) {
-		var cells = new ArrayList();
-		var x = damageDealer.X;
-		var y = damageDealer.Y;
-		int i, j;
 		for(i = x - 1; i <= x + 1; i++){
 			for(j = y - 1; j <= y + 1; j++){
 				if(i == x && j == y) continue;
 				if(i >= 0 && i < Width && j >= 0 && j < Height) {
-					var testedPoint = virusGrid [i, j];
-					if(testedPoint != null) {
-						if(testedPoint.PlayerNumber != damageDealer.PlayerNumber) {
-							cells.Add (testedPoint);
+					var testedPoint = virusGrid [j*Width + i];
+					Point point = new Point(i, j);
+					if(testedPoint == null) {
+						freeCells.Add(point);
+					}
+					else {
+						if(testedPoint.PlayerNumber != virusGrid[y*Width + x].PlayerNumber) {
+							enemyCells.Add(point);
 						}
 					}
 				}
 			}
 		}
-		return (VirusCell[])cells.ToArray(typeof(VirusCell));
+
+		//-----------------------------------------------------------------------------//
+		// TODO ИЗБАВИТЬСЯ ОТ ЭТОЙ ГРЁБАНОЙ КОНВЕРТАЦИИ из ArrayList в Point[], 
+		// В ИДЕАЛЕ ВООБЩЕ РАБОТАТЬ НЕ С ПОИНТАМИ А С ИНТОМ-Смещением ТИПА X * WIDTH + Y 
+		// НО ДЛЯ REPRODUCE НАМ НУЖНЫ КООРД-ТЫ x y z для Vector3d - не смог это пофиксить
+		// 
+		// конструкция типа Point point = new Point(i, j); в теле цикла жутко убога
+		// и маст дай. ЗЫ вроде выиграл пару фпс :)
+		//-----------------------------------------------------------------------------//
+
+		neighbours.FreeCells = (Point[]) freeCells.ToArray(typeof(Point));
+		neighbours.EnemyCells = (Point[]) enemyCells.ToArray(typeof(Point));
+
+		return neighbours;
 	}
 
 	public void AddCell (VirusCell cell)
 	{
 		cell.GameField = this;
-		virusGrid[cell.X, cell.Y] = cell;
+		virusGrid[cell.Y*Width + cell.X] = cell;
 	}
 
 	private void InitFirstPopulation() {
-		var halfWidth = Width / 2;
-		var halfHeight = Height / 2;
-		for(int x = 0; x < Width; x++) {
-			for(int y = 0; y < Height; y++) {
+		int x, y;
+		for(x = 0; x < Width; x++) {
+			for(y = 0; y < Height; y++) {
 				VirusCell cell = null;
 				if(x <= 0 && y == halfHeight) {
 					cell = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth, 0f, 0f), Quaternion.identity)).GetComponent (typeof(VirusCell));
@@ -88,7 +97,7 @@ public class GameScript : MonoBehaviour {
 					cell.X = x;
 					cell.Y = y;
 				}
-				virusGrid[x, y] = cell;
+				virusGrid[y*Width + x] = cell;
 			}
 		}
 	}
