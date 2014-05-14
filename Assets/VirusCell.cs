@@ -150,6 +150,12 @@ public class VirusCell : MonoBehaviour {
 		cell.PlayerNumber = playerNumber;
 		cell.X = point.X;
 		cell.Y = point.Y;
+
+		//TODO заменить на мутацию
+		cell.Strength = Strength;
+		cell.Endurance = Endurance;
+		cell.Dexterity = Dexterity;
+
 		GameField.AddCell(cell);
 	}
 
@@ -173,6 +179,7 @@ public class VirusCell : MonoBehaviour {
 
 	public void Die ()
 	{
+		GameField.decreaseCellCount((int)playerNumber);
 		Destroy(gameObject);
 	}
 

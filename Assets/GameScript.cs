@@ -2,7 +2,12 @@
 using System.Collections;
 
 public class GameScript : MonoBehaviour {
-	
+
+	public int PlayerCount = 2;
+
+	public GUIText[] Info;
+	public int[] PlayerCellCount;
+
 	public GameObject Cell;
 	public int Width;
 	public int Height;
@@ -16,6 +21,13 @@ public class GameScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		PlayerCellCount = new int[PlayerCount];
+		for(int i = 0; i < 4; i++) {
+			if(i >= PlayerCount) {
+				Info[i].enabled = false;
+			}
+		}
+
 		virusGrid = new VirusCell[Height* Width];
 
 		halfWidth = Width / 2f;
@@ -27,10 +39,17 @@ public class GameScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		int losers = 0;
+		for(int i = 0; i < PlayerCount; i++) {
+			if(PlayerCellCount[i] == 0) losers++;
+		}
+		if(losers == PlayerCount - 1) {
+			Application.LoadLevel("win");
+		}
 	}
 
 	void OnGUI() {
-		Time.timeScale = GUI.HorizontalSlider(new Rect(10, 10, 200, 30), Time.timeScale, 0.5F, 30.0F);
+		Time.timeScale = GUI.HorizontalSlider(new Rect(Screen.width/2 - 100, 10, 200, 50), Time.timeScale, 0.5F, 50.0F);
 	}
     
 	public Neighbours GetNeighbours(int x, int y)
@@ -77,6 +96,15 @@ public class GameScript : MonoBehaviour {
 	{
 		cell.GameField = this;
 		virusGrid[cell.Y*Width + cell.X] = cell;
+		var i = (int)cell.PlayerNumber;
+		PlayerCellCount[i]++;
+		Info[i].text = "Population: " + PlayerCellCount[i];
+	}
+
+	public void decreaseCellCount (int playerNumber)
+	{
+		PlayerCellCount[playerNumber]--;
+		Info[playerNumber].text = "Population: " + PlayerCellCount[playerNumber];
 	}
 
 	private void InitFirstPopulation() {
@@ -90,14 +118,16 @@ public class GameScript : MonoBehaviour {
 				}
 				if(x >= Width - 1 && y == halfHeight) {
 					cell = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth - 1, 0f, 0f), Quaternion.identity)).GetComponent (typeof(VirusCell));
+					cell.Strength = 1;
 					cell.PlayerNumber = PlayerNumber.Two;
 				}
 				if(cell != null) {
-					cell.GameField = this;
 					cell.X = x;
 					cell.Y = y;
+                    AddCell(cell);
+				} else {
+					virusGrid[y*Width + x] = cell;
 				}
-				virusGrid[y*Width + x] = cell;
 			}
 		}
 	}
