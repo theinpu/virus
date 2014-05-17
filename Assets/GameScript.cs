@@ -19,8 +19,14 @@ public class GameScript : MonoBehaviour {
 
 	public VirusCell[] virusGrid;
 
+	private GameGlobalScript gameGlobal;
+
 	// Use this for initialization
 	void Start () {
+
+		var gameGlobalObject = GameObject.Find("GameGlobal");
+		gameGlobal = (GameGlobalScript)gameGlobalObject.GetComponent(typeof(GameGlobalScript));
+
 		PlayerCellCount = new int[PlayerCount];
 		for(int i = 0; i < 4; i++) {
 			if(i >= PlayerCount) {
@@ -113,17 +119,20 @@ public class GameScript : MonoBehaviour {
 			for(y = 0; y < Height; y++) {
 				VirusCell cell = null;
 				if(x <= 0 && y == halfHeight) {
-					cell = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth, 0f, 0f), Quaternion.identity)).GetComponent (typeof(VirusCell));
+					cell = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth, 0f, 0f), Quaternion.identity)).GetComponent (typeof(VirusCell));    
 					cell.PlayerNumber = PlayerNumber.One;
 				}
 				if(x >= Width - 1 && y == halfHeight) {
 					cell = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth - 1, 0f, 0f), Quaternion.identity)).GetComponent (typeof(VirusCell));
-					cell.Strength = 1;
 					cell.PlayerNumber = PlayerNumber.Two;
 				}
 				if(cell != null) {
 					cell.X = x;
 					cell.Y = y;
+				    var playerNumber = (int)cell.PlayerNumber;
+				    cell.Strength = gameGlobal.PlayerSetting[playerNumber].Strength;
+                    cell.Endurance = gameGlobal.PlayerSetting[playerNumber].Endurance;
+                    cell.Dexterity = gameGlobal.PlayerSetting[playerNumber].Dexterity;
                     AddCell(cell);
 				} else {
 					virusGrid[y*Width + x] = cell;
