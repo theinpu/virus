@@ -133,4 +133,5 @@ public class PlayerSetting
     private float strength = 10f;
     private float endurance = 10f;
     private float dexterity = 10f;
+    public Point StartingPosition;
 }

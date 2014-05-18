@@ -1,13 +1,21 @@
 using UnityEngine;
-using System.Collections;
 
 public class GridOverlay : MonoBehaviour
 {
-    public GameScript gameField;
+    public GameGlobalScript GameGlobal;
+    public bool Visible = false;
 
     private Material lineMaterial;
 
     private Color mainColor = new Color(0f, 1f, 0f, 1f);
+    private int halfWidth;
+    private int halfHeight;
+
+    void Start()
+    {
+        halfWidth = GameGlobal.GameSettings.FieldWidth / 2;
+        halfHeight = GameGlobal.GameSettings.FieldHeight / 2;
+    }
 
     void CreateLineMaterial()
     {
@@ -28,6 +36,7 @@ public class GridOverlay : MonoBehaviour
 
     void OnPostRender()
     {
+        if (!Visible) return;
         CreateLineMaterial();
         // set the current material
         lineMaterial.SetPass(0);
@@ -36,15 +45,15 @@ public class GridOverlay : MonoBehaviour
 
         GL.Color(mainColor);
 
-        for (float i = -gameField.halfWidth - 0.5f; i < gameField.halfWidth + 0.5f; i++)
+        for (float i = -halfWidth - 0.5f; i < halfWidth + 0.5f; i++)
         {
-            GL.Vertex3(i, 0, -gameField.halfHeight - 0.5f);
-            GL.Vertex3(i, 0, gameField.halfHeight - 0.5f);
+            GL.Vertex3(i, 0, -halfHeight - 0.5f);
+            GL.Vertex3(i, 0, halfHeight - 0.5f);
         }
-        for (float i = -gameField.halfHeight - 0.5f; i < gameField.halfHeight + 0.5f; i++)
+        for (float i = -halfHeight - 0.5f; i < halfHeight + 0.5f; i++)
         {
-            GL.Vertex3(-gameField.halfWidth - 0.5f, 0, i);
-            GL.Vertex3(gameField.halfWidth - 0.5f, 0, i);
+            GL.Vertex3(-halfWidth - 0.5f, 0, i);
+            GL.Vertex3(halfWidth - 0.5f, 0, i);
         }
 
         GL.End();

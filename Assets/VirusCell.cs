@@ -81,7 +81,7 @@ public class VirusCell : MonoBehaviour {
 		} 
 	}
 
-	public GameScript GameField {get;set;}
+	public GameField GameField {get;set;}
 	public int X {get;set;}
 	public int Y {get;set;}
 

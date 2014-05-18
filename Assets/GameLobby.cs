@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class GameLobby : MonoBehaviour
 {
-
     private GameGlobalScript gameGlobal;
+    private GridOverlay grid;
 
     private int state = 0;
     private int playerSettingsCurrent = 0;
@@ -14,11 +14,10 @@ public class GameLobby : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-
         var gameGlobalObject = GameObject.Find("GameGlobal");
         gameGlobal = (GameGlobalScript)gameGlobalObject.GetComponent(typeof(GameGlobalScript));
 
-
+        grid = (GridOverlay) Camera.main.GetComponent(typeof (GridOverlay));
     }
 
     void OnGUI()
@@ -32,7 +31,7 @@ public class GameLobby : MonoBehaviour
                 DrawPlayerParamsScreen();
                 break;
             case 2:
-                DrawSummary();
+                DrawStartPositionSelect();
                 break;
         }
     }
@@ -66,27 +65,33 @@ public class GameLobby : MonoBehaviour
             var newEndurance = (int)GUI.HorizontalSlider(new Rect(10, 90, 100, 30), (int)endurance, 1f, PlayerSetting.MaxPoint - 2f);
             var newDexterity = (int)GUI.HorizontalSlider(new Rect(10, 130, 100, 30), (int)dexterity, 1f, PlayerSetting.MaxPoint - 2f);
 
-            if(Math.Abs(strength - newStrength) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Strength = newStrength;
+            if (Math.Abs(strength - newStrength) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Strength = newStrength;
             if (Math.Abs(endurance - newEndurance) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Endurance = newEndurance;
             if (Math.Abs(dexterity - newDexterity) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Dexterity = newDexterity;
 
-            if (GUI.Button(new Rect(10, 200, 100, 30), "Next player"))
+            if (GUI.Button(new Rect(10, 200, 100, 30), "Next"))
             {
                 playerSettingsCurrent++;
             }
         }
         else
         {
-            if (GUI.Button(new Rect(10, 10, 100, 30), "Ready"))
-            {
-                //state++;
-                Application.LoadLevel("gameScene");
-            }
+            state++;
+            grid.Visible = true;
+
+            //for (int i = 0; i < gameGlobal.PlayerCount; i++)
+           // {
+                gameGlobal.PlayerSetting[0].StartingPosition = new Point(0, 0);
+                gameGlobal.PlayerSetting[1].StartingPosition = new Point(gameGlobal.GameSettings.FieldWidth - 1, gameGlobal.GameSettings.FieldHeight - 1);
+            //}
         }
     }
 
-    void DrawSummary()
+    void DrawStartPositionSelect()
     {
-
+        if (GUI.Button(new Rect(10, 10, 100, 30), "Start game"))
+        {
+            Application.LoadLevel("gameScene");
+        }
     }
 }
