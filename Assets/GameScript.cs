@@ -12,8 +12,8 @@ public class GameScript : MonoBehaviour {
 	public int Width;
 	public int Height;
 	
-	public float halfWidth;
-	public float halfHeight;
+	public int halfWidth;
+	public int halfHeight;
 
 	public float TimeScale = 1f;
 
@@ -36,8 +36,8 @@ public class GameScript : MonoBehaviour {
 
 		virusGrid = new VirusCell[Height* Width];
 
-		halfWidth = Width / 2f;
-		halfHeight = Height / 2f;
+		halfWidth = Width / 2;
+		halfHeight = Height / 2;
 
 		InitFirstPopulation();
 		Time.timeScale = TimeScale;
@@ -45,7 +45,7 @@ public class GameScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		int losers = 0;
+		int losers = 0;        
 		for(int i = 0; i < PlayerCount; i++) {
 			if(PlayerCellCount[i] == 0) losers++;
 		}
@@ -123,7 +123,7 @@ public class GameScript : MonoBehaviour {
 					cell.PlayerNumber = PlayerNumber.One;
 				}
 				if(x >= Width - 1 && y == halfHeight) {
-					cell = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth - 1, 0f, 0f), Quaternion.identity)).GetComponent (typeof(VirusCell));
+					cell = (VirusCell)((GameObject)Instantiate (Cell, new Vector3 (x - halfWidth, 0f, 0f), Quaternion.identity)).GetComponent (typeof(VirusCell));
 					cell.PlayerNumber = PlayerNumber.Two;
 				}
 				if(cell != null) {
