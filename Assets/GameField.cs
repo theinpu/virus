@@ -131,20 +131,28 @@ public class GameField : MonoBehaviour {
     private void CreatePlayerCell(int id)
     {
         var playerSetting = gameGlobal.PlayerSetting[id];
-        var x = playerSetting.StartingPosition.X;
-        var y = playerSetting.StartingPosition.Y;
-        var cell = (VirusCell)((GameObject) Instantiate(Cell, new Vector3(x - halfWidth, 0f, y - halfHeight), Quaternion.identity)).GetComponent(typeof (VirusCell));
 
-        cell.PlayerNumber = (PlayerNumber)id;
-        cell.X = x;
-        cell.Y = y;
-        
-        cell.Strength = playerSetting.Strength;
-        cell.Endurance = playerSetting.Endurance;
-        cell.Dexterity = playerSetting.Dexterity;
+        for (int i = 0; i < GameGlobalScript.MaxCells; i++)
+        {
 
-        AddCell(cell);
+            var x = playerSetting.StartingPosition[i].X;
+            var y = playerSetting.StartingPosition[i].Y;
+            var cell =
+                (VirusCell)
+                    ((GameObject) Instantiate(Cell, new Vector3(x - halfWidth, 0f, y - halfHeight), Quaternion.identity))
+                        .GetComponent(typeof (VirusCell));
 
-        virusGrid[y*Width + x] = cell;
+            cell.PlayerNumber = (PlayerNumber) id;
+            cell.X = x;
+            cell.Y = y;
+
+            cell.Strength = playerSetting.Strength;
+            cell.Endurance = playerSetting.Endurance;
+            cell.Dexterity = playerSetting.Dexterity;
+
+            AddCell(cell);
+
+            virusGrid[y*Width + x] = cell;
+        }
     }
 }

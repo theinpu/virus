@@ -8,6 +8,7 @@ public class GameLobby : MonoBehaviour
 
     private int state = 0;
     private int playerSettingsCurrent = 0;
+    private int playerClicks = 0;
 
     private const float Epsilon = 0.01f;
 
@@ -18,6 +19,19 @@ public class GameLobby : MonoBehaviour
         gameGlobal = (GameGlobalScript)gameGlobalObject.GetComponent(typeof(GameGlobalScript));
 
         grid = (GridOverlay) Camera.main.GetComponent(typeof (GridOverlay));
+    }
+
+    void Update()
+    {
+        if (state == 1)
+        {
+            if (Input.GetMouseButtonUp(0) && grid.IsInField() && playerClicks < GameGlobalScript.MaxCells)
+            {
+                gameGlobal.PlayerSetting[playerSettingsCurrent].StartingPosition[playerClicks] = grid.FieldPoint;
+                playerClicks++;
+                grid.AddPoint();
+            }
+        }
     }
 
     void OnGUI()
@@ -44,6 +58,9 @@ public class GameLobby : MonoBehaviour
         {
             gameGlobal.InitPlayerSettings();
             state++;
+            grid.Visible = true;
+            
+            grid.RectColor = new Color(1f, 0f, 0f, .75f);
         }
     }
 
@@ -52,7 +69,6 @@ public class GameLobby : MonoBehaviour
         if (playerSettingsCurrent < gameGlobal.PlayerCount)
         {
             GUI.Label(new Rect(10, 10, 100, 20), "Player " + (playerSettingsCurrent + 1) + " settings");
-
             var strength = gameGlobal.PlayerSetting[playerSettingsCurrent].Strength;
             var endurance = gameGlobal.PlayerSetting[playerSettingsCurrent].Endurance;
             var dexterity = gameGlobal.PlayerSetting[playerSettingsCurrent].Dexterity;
@@ -72,18 +88,17 @@ public class GameLobby : MonoBehaviour
             if (GUI.Button(new Rect(10, 200, 100, 30), "Next"))
             {
                 playerSettingsCurrent++;
+                playerClicks = 0;
+                grid.RectColor = new Color(0f, 0f, 1f, .75f);
             }
         }
         else
         {
             state++;
-            grid.Visible = true;
 
-            //for (int i = 0; i < gameGlobal.PlayerCount; i++)
-           // {
-                gameGlobal.PlayerSetting[0].StartingPosition = new Point(0, 0);
-                gameGlobal.PlayerSetting[1].StartingPosition = new Point(gameGlobal.GameSettings.FieldWidth - 1, gameGlobal.GameSettings.FieldHeight - 1);
-            //}
+            grid.Visible = false;
+
+
         }
     }
 
