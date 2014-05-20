@@ -17,6 +17,8 @@ public class VirusCell : MonoBehaviour {
 	public float Strength = 1;
 	public float Dexterity = 1;
 	public float ReproductiveSpeed = 1f;
+    public float minReproductiveAge = 20f;
+    public float maxReproductiveAge = 80f;
 
 	public bool CanReproduce = false;
 	public bool CanChangeHealth = true;
@@ -33,7 +35,6 @@ public class VirusCell : MonoBehaviour {
 
 	private float age = 0;
 	private float maxAge;
-	private float reproductiveAgility;
 	private float agingChangeRate = 1f;
 	private Vector2 reproductiveAgeBounds;
 
@@ -95,8 +96,7 @@ public class VirusCell : MonoBehaviour {
 
 		attackSpeed = 1f;
 
-		reproductiveAgility = (Dexterity / (maxAge + health));
-		reproductiveAgeBounds = new Vector2(maxAge * reproductiveAgility, maxAge * (1f - reproductiveAgility));
+        reproductiveAgeBounds = new Vector2(maxAge * (minReproductiveAge / 100), maxAge * (maxReproductiveAge / 100));
 		reproductiveAges = reproductiveAgeBounds.y - reproductiveAgeBounds.x;
 	}
 	
@@ -111,8 +111,11 @@ public class VirusCell : MonoBehaviour {
 			age += agingChangeRate;
 
 			var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
-			var timeValue = ageCoef / reproductiveAges;
-			ReproductiveSpeed = (ReproductionStrengthCurve.Evaluate(timeValue) * health/maxHealth);
+            var timeValue = ageCoef / (maxAge / reproductiveAges);
+			ReproductiveSpeed = (ReproductionStrengthCurve.Evaluate(timeValue) * health/maxHealth) * (reproductiveAges / maxAge);
+            //-------------------------------------------------------------------------------------
+            // TODO разобраться с влиянием возрастных границ размножения на скорость и частоту размножения
+            //-------------------------------------------------------------------------------------
 		}
 		agingTimer += Time.deltaTime;
 
@@ -155,6 +158,8 @@ public class VirusCell : MonoBehaviour {
 		cell.Strength = Strength;
 		cell.Endurance = Endurance;
 		cell.Dexterity = Dexterity;
+	    cell.minReproductiveAge = minReproductiveAge;
+	    cell.maxReproductiveAge = maxReproductiveAge;
 
 		GameField.AddCell(cell);
 	}

@@ -72,20 +72,32 @@ public class GameLobby : MonoBehaviour
             var strength = gameGlobal.PlayerSetting[playerSettingsCurrent].Strength;
             var endurance = gameGlobal.PlayerSetting[playerSettingsCurrent].Endurance;
             var dexterity = gameGlobal.PlayerSetting[playerSettingsCurrent].Dexterity;
+            var minAgeRep = gameGlobal.PlayerSetting[playerSettingsCurrent].MinReproductiveAge;
+            var maxAgeRep = gameGlobal.PlayerSetting[playerSettingsCurrent].MaxReproductiveAge;
 
-            GUI.Label(new Rect(10, 30, 150, 30), "Strength: " + (int)strength);
-            GUI.Label(new Rect(10, 70, 150, 30), "Endurance: " + (int)endurance);
-            GUI.Label(new Rect(10, 110, 150, 30), "Dexterity: " + (int)dexterity);
+            var lifeCycle = Mathf.Floor((maxAgeRep - minAgeRep)/5 + 0.5f);
+            var unspentPoints = PlayerSetting.MaxPoint - lifeCycle - strength - endurance - dexterity;
 
-            var newStrength = (int)GUI.HorizontalSlider(new Rect(10, 50, 100, 30), (int)strength, 1f, PlayerSetting.MaxPoint - 2f);
-            var newEndurance = (int)GUI.HorizontalSlider(new Rect(10, 90, 100, 30), (int)endurance, 1f, PlayerSetting.MaxPoint - 2f);
-            var newDexterity = (int)GUI.HorizontalSlider(new Rect(10, 130, 100, 30), (int)dexterity, 1f, PlayerSetting.MaxPoint - 2f);
+            GUI.Label(new Rect(10, 30, 100, 20), "Points: " + (int)unspentPoints);
+            GUI.Label(new Rect(10, 50, 150, 30), "Power: " + (int)strength);
+            GUI.Label(new Rect(10, 90, 150, 30), "Vitality: " + (int)endurance);
+            GUI.Label(new Rect(10, 130, 150, 30), "Speed: " + (int)dexterity);
+            GUI.Label(new Rect(10, 170, 150, 30), "Rep age min: " + (int)minAgeRep + "%");
+            GUI.Label(new Rect(10, 210, 150, 30), "Rep age max: " + (int)maxAgeRep + "%");
+
+            var newStrength = (int)GUI.HorizontalSlider(new Rect(10, 70, 100, 30), (int)strength, 1f, PlayerSetting.MaxPoint - 18f);
+            var newEndurance = (int)GUI.HorizontalSlider(new Rect(10, 110, 100, 30), (int)endurance, 1f, PlayerSetting.MaxPoint - 18f);
+            var newDexterity = (int)GUI.HorizontalSlider(new Rect(10, 150, 100, 30), (int)dexterity, 1f, PlayerSetting.MaxPoint - 18f);
+            var newMinAge = GUI.HorizontalSlider(new Rect(10, 190, 100, 30), (int)minAgeRep, 10f, 90f);
+            var newMaxAge = GUI.HorizontalSlider(new Rect(10, 230, 100, 30), (int)maxAgeRep, 10f, 90f);
 
             if (Math.Abs(strength - newStrength) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Strength = newStrength;
             if (Math.Abs(endurance - newEndurance) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Endurance = newEndurance;
             if (Math.Abs(dexterity - newDexterity) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Dexterity = newDexterity;
+            if (Math.Abs(minAgeRep - newMinAge) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].MinReproductiveAge = newMinAge;
+            if (Math.Abs(maxAgeRep - newMaxAge) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].MaxReproductiveAge = newMaxAge;
 
-            if (GUI.Button(new Rect(10, 200, 100, 30), "Next"))
+            if (GUI.Button(new Rect(10, 250, 100, 30), "Next"))
             {
                 playerSettingsCurrent++;
                 playerClicks = 0;
@@ -97,8 +109,6 @@ public class GameLobby : MonoBehaviour
             state++;
 
             grid.Visible = false;
-
-
         }
     }
 

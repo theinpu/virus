@@ -150,6 +150,9 @@ public class GameField : MonoBehaviour {
             cell.Endurance = playerSetting.Endurance;
             cell.Dexterity = playerSetting.Dexterity;
 
+            cell.minReproductiveAge = playerSetting.MinReproductiveAge;
+            cell.maxReproductiveAge = playerSetting.MaxReproductiveAge;
+
             AddCell(cell);
 
             virusGrid[y*Width + x] = cell;
