@@ -97,7 +97,7 @@ public class GameLobby : MonoBehaviour
             if (Math.Abs(minAgeRep - newMinAge) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].MinReproductiveAge = newMinAge;
             if (Math.Abs(maxAgeRep - newMaxAge) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].MaxReproductiveAge = newMaxAge;
 
-            if (GUI.Button(new Rect(10, 250, 100, 30), "Next"))
+            if (GUI.Button(new Rect(10, 260, 100, 30), "Next"))
             {
                 playerSettingsCurrent++;
                 playerClicks = 0;
