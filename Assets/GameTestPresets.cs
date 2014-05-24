@@ -17,8 +17,8 @@ public class GameTestPresets : MonoBehaviour
 
     private Point[] bottomLeftCorner = new Point[5];
     private Point[] topRightCorner = new Point[5];
-    private int w = 15;
-    private int h = 15;
+    private int w = 31;
+    private int h = 31;
 
     void Start()
     {

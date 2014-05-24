@@ -197,7 +197,8 @@ public class VirusCell : MonoBehaviour
     public void Die()
     {
         GameField.decreaseCellCount((int)playerNumber);
-        Destroy(gameObject);
+        DestroyImmediate(renderer.materials[0]);
+        Destroy(gameObject);        
     }
 
     private void SetColor(Color color)
