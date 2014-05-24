@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-public class PlayerSetting
+public class PlayerSetting : ICloneable
 {
     public const float MaxPoint = 42f;
 
@@ -256,5 +257,10 @@ public class PlayerSetting
             return true;
 
         else return false;
+    }
+
+    public object Clone()
+    {
+        return this.MemberwiseClone();
     }
 }

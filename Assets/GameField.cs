@@ -107,14 +107,20 @@ public class GameField : MonoBehaviour {
 		virusGrid[cell.Y*Width + cell.X] = cell;
 		var i = (int)cell.PlayerNumber;
 		PlayerCellCount[i]++;
-		Info[i].text = "Population: " + PlayerCellCount[i];
+		Info[i].text = "Population: " + PlayerCellCount[i] 
+            + "\nS:" + gameGlobal.PlayerSetting[i].Strength 
+            + "\nE:" + gameGlobal.PlayerSetting[i].Endurance
+            + "\nD:" + gameGlobal.PlayerSetting[i].Dexterity;
 	}
 
-	public void decreaseCellCount (int playerNumber)
+	public void decreaseCellCount (int i)
 	{
-		PlayerCellCount[playerNumber]--;
-		Info[playerNumber].text = "Population: " + PlayerCellCount[playerNumber];
-	}
+		PlayerCellCount[i]--;
+        Info[i].text = "Population: " + PlayerCellCount[i]
+            + "\nS:" + gameGlobal.PlayerSetting[i].Strength
+            + "\nE:" + gameGlobal.PlayerSetting[i].Endurance
+            + "\nD:" + gameGlobal.PlayerSetting[i].Dexterity;
+    }
 
 	private void InitFirstPopulation() {
 		int x, y;

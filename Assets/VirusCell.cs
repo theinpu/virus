@@ -10,6 +10,8 @@ public class VirusCell : MonoBehaviour
     const float MaxStrength = 30f;
     const float MaxDexterity = 30f;
 
+    private const float AgingChangeRate = 1f;
+
     #endregion
 
     #region Public fields
@@ -36,7 +38,6 @@ public class VirusCell : MonoBehaviour
 
     private float age = 0;
     private float maxAge;
-    private float agingChangeRate = 1f;
     private Vector2 reproductiveAgeBounds;
 
     private float mutationFactor = 1f;
@@ -96,7 +97,7 @@ public class VirusCell : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        maxAge = Endurance * 2f + Strength + Dexterity;
+        maxAge = (Endurance * 3f + Strength * 2f + Dexterity);
         health = Endurance * 5f + (Strength / Dexterity);
         maxHealth = health;
 
@@ -106,7 +107,6 @@ public class VirusCell : MonoBehaviour
         reproductiveAges = reproductiveAgeBounds.y - reproductiveAgeBounds.x;
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (age > maxAge || health <= 0f)
@@ -114,33 +114,24 @@ public class VirusCell : MonoBehaviour
             Die();
             return;
         }
-        if (agingTimer > 1f)
-        {
-            agingTimer = 0f;
-            age += agingChangeRate;
-
-            var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
-            var timeValue = ageCoef / (maxAge / reproductiveAges);
-            ReproductiveSpeed = ReproductionStrengthCurve.Evaluate(timeValue) * (reproductiveAges * (health / maxAge)) * (Strength / Dexterity);
-            //-------------------------------------------------------------------------------------
-            // TODO разобраться с влиянием возрастных границ размножения на скорость и частоту размножения
-            //-------------------------------------------------------------------------------------
-        }
-        agingTimer += Time.deltaTime;
+        age += Time.deltaTime;
 
         neighbours = GameField.GetNeighbours(X, Y);
         var emptyLength = neighbours.FreeCells.Length;
         var enemyLength = neighbours.EnemyCells.Length;
 
-        if (emptyLength >= 3 && emptyLength < 8)
+        if (emptyLength >= 2 && emptyLength < 8)
         {
-            if (reproductiveTimer > ReproductiveSpeed && age > reproductiveAgeBounds.x && age < reproductiveAgeBounds.y)
+            if (age > reproductiveAgeBounds.x && age < reproductiveAgeBounds.y)
             {
-                reproductiveTimer = 0;
-                Reproduce(neighbours.FreeCells);
+                TryReproduce();
             }
-            reproductiveTimer += Time.deltaTime;
         }
+        /*if (emptyLength == 0)
+        {
+            Die();
+            return;
+        }*/
 
         if (enemyLength > 0)
         {
@@ -184,11 +175,17 @@ public class VirusCell : MonoBehaviour
         var timeValue = ageCoef / reproductiveAges;
 
         var strengthCoef = ReproductionStrengthCurve.Evaluate(timeValue);
-        damage = (Strength / 1.25f + Dexterity / 5f + Endurance / 10f) * strengthCoef;
+        damage = (Strength + Dexterity / 2.75f + Endurance / 11f) * strengthCoef;
         if (damage > 0f && !float.IsNaN(damage))
         {
             var gridPoint = point.Y * GameField.Width + point.X;
             GameField.virusGrid[gridPoint].TakeDamage(damage);
+            /*if (GameField.virusGrid[gridPoint].Health < 0 && Random.value < .24f)
+            {
+                var points = new Point[1];
+                points[0] = point;
+                Reproduce(points);
+            }*/
         }
     }
 
@@ -206,5 +203,24 @@ public class VirusCell : MonoBehaviour
     private void SetColor(Color color)
     {
         renderer.materials[0].color = color;
+    }
+
+    private void TryReproduce()
+    {
+        reproductiveTimer += Time.deltaTime;
+
+        var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
+        var timeValue = ageCoef / reproductiveAges;
+        var reproductiveAge = (maxReproductiveAge - minReproductiveAge) / 100f;
+        ReproductiveSpeed = reproductiveAge / (Dexterity * 5f);
+        ReproductiveSpeed *= maxAge;
+        ReproductiveSpeed *= 1f / (health / maxHealth);
+        ReproductiveSpeed /= 2f * ReproductionStrengthCurve.Evaluate(timeValue);
+
+        if (reproductiveTimer > ReproductiveSpeed)
+        {
+            Reproduce(neighbours.FreeCells);
+            reproductiveTimer = 0f;
+        }
     }
 }
