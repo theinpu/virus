@@ -120,6 +120,8 @@ public class VirusCell : MonoBehaviour
         var emptyLength = neighbours.FreeCells.Length;
         var enemyLength = neighbours.EnemyCells.Length;
 
+        SetMaterialNeighbours();
+
         if (emptyLength >= 2 && emptyLength < 8)
         {
             if (age > reproductiveAgeBounds.x && age < reproductiveAgeBounds.y)
@@ -141,6 +143,50 @@ public class VirusCell : MonoBehaviour
             }
             attackTimer += Time.deltaTime;
         }
+    }
+
+    private void SetMaterialNeighbours()
+    {
+        var i = 0; var x = X - 1; var y = Y - 1;
+        if (x >= 0 && y >= 0) i = GetCellType(x, y);
+        renderer.material.SetFloat("bottomLeft", i);
+
+        i = 0; x = X; y = Y - 1;
+        if (y >= 0) i = GetCellType(x, y);
+        renderer.material.SetFloat("bottomMiddle", i);
+
+        i = 0; x = X + 1; y = Y - 1;
+        if (y >= 0 && x < GameField.Width) i = GetCellType(x, y);
+        renderer.material.SetFloat("bottomRight", i);
+
+        i = 0; x = X - 1; y = Y;
+        if (x >= 0) i = GetCellType(x, y);
+        renderer.material.SetFloat("middleLeft", i);
+
+        i = 0; x = X + 1; y = Y;
+        if (x < GameField.Width) i = GetCellType(x, y);
+        renderer.material.SetFloat("middleRight", i);
+
+        i = 0; x = X - 1; y = Y + 1;
+        if (x >= 0 && y < GameField.Height) i = GetCellType(x, y);
+        renderer.material.SetFloat("topLeft", i);
+
+        i = 0; x = X; y = Y + 1;
+        if (y < GameField.Height) i = GetCellType(x, y);
+        renderer.material.SetFloat("topMiddle", i);
+
+        i = 0; x = X + 1; y = Y + 1;
+        if (x < GameField.Width && y < GameField.Height) i = GetCellType(x, y);
+        renderer.material.SetFloat("topRight", i);
+    }
+
+    private int GetCellType(int x, int y)
+    {
+        var i = 0;
+        var cell = GameField.VirusGrid[y * GameField.Width + x];
+        if (cell != null)
+            i = (PlayerNumber == cell.PlayerNumber) ? 1 : 2;
+        return i;
     }
 
     void Reproduce(Point[] freeCells)
@@ -179,7 +225,7 @@ public class VirusCell : MonoBehaviour
         if (damage > 0f && !float.IsNaN(damage))
         {
             var gridPoint = point.Y * GameField.Width + point.X;
-            GameField.virusGrid[gridPoint].TakeDamage(damage);
+            GameField.VirusGrid[gridPoint].TakeDamage(damage);
             /*if (GameField.virusGrid[gridPoint].Health < 0 && Random.value < .24f)
             {
                 var points = new Point[1];
@@ -198,7 +244,7 @@ public class VirusCell : MonoBehaviour
     {
         GameField.decreaseCellCount((int)playerNumber);
         DestroyImmediate(renderer.materials[0]);
-        Destroy(gameObject);        
+        Destroy(gameObject);
     }
 
     private void SetColor(Color color)

@@ -17,7 +17,7 @@ public class GameField : MonoBehaviour {
 
 	public float TimeScale = 1f;
 
-	public VirusCell[] virusGrid;
+	public VirusCell[] VirusGrid;
 
 	private GameGlobalScript gameGlobal;
 
@@ -37,7 +37,7 @@ public class GameField : MonoBehaviour {
 			}
 		}
 
-		virusGrid = new VirusCell[Height* Width];
+		VirusGrid = new VirusCell[Height* Width];
 
 		halfWidth = Width / 2;
 		halfHeight = Height / 2;
@@ -79,13 +79,13 @@ public class GameField : MonoBehaviour {
 			for(j = y - 1; j <= y + 1; j++){
 				if(i == x && j == y) continue;
 				if(i >= 0 && i < Width && j >= 0 && j < Height) {
-					var testedPoint = virusGrid [j*Width + i];
+					var testedPoint = VirusGrid [j*Width + i];
 					Point point = new Point(i, j);
 					if(testedPoint == null) {
 						freeCells.Add(point);
 					}
 					else {
-						if(testedPoint.PlayerNumber != virusGrid[y*Width + x].PlayerNumber) {
+						if(testedPoint.PlayerNumber != VirusGrid[y*Width + x].PlayerNumber) {
 							enemyCells.Add(point);
 						}
 					}
@@ -111,7 +111,7 @@ public class GameField : MonoBehaviour {
 	public void AddCell (VirusCell cell)
 	{
 		cell.GameField = this;
-		virusGrid[cell.Y*Width + cell.X] = cell;
+		VirusGrid[cell.Y*Width + cell.X] = cell;
 		var i = (int)cell.PlayerNumber;
 		PlayerCellCount[i]++;
 	}
@@ -125,7 +125,7 @@ public class GameField : MonoBehaviour {
 		int x, y;
 		for(x = 0; x < Width; x++) {
 			for(y = 0; y < Height; y++) {
-			    virusGrid[y*Width + x]   = null;
+			    VirusGrid[y*Width + x]   = null;
 			}
 		}
 
@@ -160,7 +160,7 @@ public class GameField : MonoBehaviour {
 
             AddCell(cell);
 
-            virusGrid[y*Width + x] = cell;
+            VirusGrid[y*Width + x] = cell;
         }
     }
 }
