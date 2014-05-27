@@ -71,7 +71,7 @@ public class GameField : MonoBehaviour {
 	public Neighbours GetNeighbours(int x, int y)
 	{
 		int i, j;
-		Neighbours neighbours = new Neighbours{};
+		var neighbours = new Neighbours{};
 		var freeCells = new ArrayList();
 		var enemyCells = new ArrayList();
 
@@ -80,8 +80,8 @@ public class GameField : MonoBehaviour {
 				if(i == x && j == y) continue;
 				if(i >= 0 && i < Width && j >= 0 && j < Height) {
 					var testedPoint = VirusGrid [j*Width + i];
-					Point point = new Point(i, j);
-					if(testedPoint == null) {
+					var point = new Point(i, j);
+					if(testedPoint.PlayerNumber == PlayerNumber.None) {
 						freeCells.Add(point);
 					}
 					else {
@@ -110,13 +110,11 @@ public class GameField : MonoBehaviour {
 
 	public void AddCell (VirusCell cell)
 	{
-		cell.GameField = this;
-		VirusGrid[cell.Y*Width + cell.X] = cell;
 		var i = (int)cell.PlayerNumber;
 		PlayerCellCount[i]++;
 	}
 
-	public void decreaseCellCount (int i)
+	public void DecreaseCellCount (int i)
 	{
 		PlayerCellCount[i]--;
     }
@@ -125,13 +123,37 @@ public class GameField : MonoBehaviour {
 		int x, y;
 		for(x = 0; x < Width; x++) {
 			for(y = 0; y < Height; y++) {
-			    VirusGrid[y*Width + x]   = null;
+			    NewCell(x, y);
 			}
 		}
 
 	    CreatePlayerCell((int)PlayerNumber.One);
         CreatePlayerCell((int)PlayerNumber.Two);
 	}
+
+    private void NewCell(int x, int y)
+    {
+        var cell =
+                (VirusCell)
+                    ((GameObject)Instantiate(Cell, new Vector3(x - halfWidth, 0f, y - halfHeight), Quaternion.identity))
+                        .GetComponent(typeof(VirusCell));
+
+        cell.IsAlive = false;
+        cell.PlayerNumber = PlayerNumber.None;
+        cell.X = x;
+        cell.Y = y;
+
+        cell.Strength = 0;
+        cell.Endurance = 0;
+        cell.Dexterity = 0;
+
+        cell.minReproductiveAge = 0;
+        cell.maxReproductiveAge = 0;
+
+        cell.GameField = this;
+
+        VirusGrid[y * Width + x] = cell;
+    }
 
     private void CreatePlayerCell(int id)
     {
@@ -142,10 +164,8 @@ public class GameField : MonoBehaviour {
 
             var x = playerSetting.StartingPosition[i].X;
             var y = playerSetting.StartingPosition[i].Y;
-            var cell =
-                (VirusCell)
-                    ((GameObject) Instantiate(Cell, new Vector3(x - halfWidth, 0f, y - halfHeight), Quaternion.identity))
-                        .GetComponent(typeof (VirusCell));
+
+            var cell = VirusGrid[y*Width + x];
 
             cell.PlayerNumber = (PlayerNumber) id;
             cell.X = x;
@@ -159,8 +179,8 @@ public class GameField : MonoBehaviour {
             cell.maxReproductiveAge = playerSetting.MaxReproductiveAge;
 
             AddCell(cell);
-
-            VirusGrid[y*Width + x] = cell;
+            cell.IsAlive = true;
+            cell.ResetParams();
         }
     }
 }

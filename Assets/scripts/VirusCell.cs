@@ -12,6 +12,8 @@ public class VirusCell : MonoBehaviour
 
     private const float AgingChangeRate = 1f;
 
+    private const float TimeScale = 1f;
+
     #endregion
 
     #region Public fields
@@ -92,11 +94,23 @@ public class VirusCell : MonoBehaviour
     public int X { get; set; }
     public int Y { get; set; }
 
+    public bool IsAlive
+    {
+        get { return isAlive; }
+        set
+        {
+            isAlive = value;
+            gameObject.SetActive(isAlive);
+        }
+    }
+
+    private bool isAlive = false;
+
     #endregion
 
-    // Use this for initialization
-    void Start()
+    public void ResetParams()
     {
+        age = 0;
         maxAge = (Endurance * 3f + Strength * 2f + Dexterity);
         health = Endurance * 5f + (Strength / Dexterity);
         maxHealth = health;
@@ -109,18 +123,19 @@ public class VirusCell : MonoBehaviour
 
     void Update()
     {
+        if (!IsAlive) return;
         if (age > maxAge || health <= 0f)
         {
             Die();
             return;
         }
-        age += Time.deltaTime;
+        age += Time.deltaTime * TimeScale;
 
         neighbours = GameField.GetNeighbours(X, Y);
         var emptyLength = neighbours.FreeCells.Length;
         var enemyLength = neighbours.EnemyCells.Length;
 
-        SetMaterialNeighbours();
+        //SetMaterialNeighbours();
 
         if (emptyLength >= 2 && emptyLength < 8)
         {
@@ -141,56 +156,48 @@ public class VirusCell : MonoBehaviour
             {
                 Attack(neighbours.EnemyCells);
             }
-            attackTimer += Time.deltaTime;
+            attackTimer += Time.deltaTime * TimeScale;
         }
     }
 
     private void SetMaterialNeighbours()
     {
-        var i = 0; var x = X - 1; var y = Y - 1;
-        if (x >= 0 && y >= 0) i = GetCellType(x, y);
-        renderer.material.SetFloat("bottomLeft", i);
+        var cells = new Vector4();
 
-        i = 0; x = X; y = Y - 1;
+        var i = 0; var x = X; var y = Y - 1;
         if (y >= 0) i = GetCellType(x, y);
-        renderer.material.SetFloat("bottomMiddle", i);
-
-        i = 0; x = X + 1; y = Y - 1;
-        if (y >= 0 && x < GameField.Width) i = GetCellType(x, y);
-        renderer.material.SetFloat("bottomRight", i);
+        cells.x = i;
+        //renderer.material.SetFloat("bottomMiddle", i);
 
         i = 0; x = X - 1; y = Y;
         if (x >= 0) i = GetCellType(x, y);
-        renderer.material.SetFloat("middleLeft", i);
+        cells.y = i;
+        //renderer.material.SetFloat("middleLeft", i);
 
         i = 0; x = X + 1; y = Y;
         if (x < GameField.Width) i = GetCellType(x, y);
-        renderer.material.SetFloat("middleRight", i);
-
-        i = 0; x = X - 1; y = Y + 1;
-        if (x >= 0 && y < GameField.Height) i = GetCellType(x, y);
-        renderer.material.SetFloat("topLeft", i);
+        cells.z = i;
+        //renderer.material.SetFloat("middleRight", i);
 
         i = 0; x = X; y = Y + 1;
         if (y < GameField.Height) i = GetCellType(x, y);
-        renderer.material.SetFloat("topMiddle", i);
+        cells.w = i;
 
-        i = 0; x = X + 1; y = Y + 1;
-        if (x < GameField.Width && y < GameField.Height) i = GetCellType(x, y);
-        renderer.material.SetFloat("topRight", i);
+        renderer.material.SetVector("cells", cells);
     }
 
     private int GetCellType(int x, int y)
     {
         var i = 0;
         var cell = GameField.VirusGrid[y * GameField.Width + x];
-        if (cell != null)
+        if (cell.PlayerNumber != PlayerNumber.None)
             i = (PlayerNumber == cell.PlayerNumber) ? 1 : 2;
         return i;
     }
 
     void Reproduce(Point[] freeCells)
     {
+        //Debug.Log(freeCells.Length);
         var id = Random.Range(0, freeCells.Length);
         var point = freeCells[id];
 
@@ -199,10 +206,8 @@ public class VirusCell : MonoBehaviour
         // (смещения в векторе virusGrid) при этом умея инстанцировать его в new Vector3
         //------------------------------------------------------------------------------
 
-        var cell = (VirusCell)((GameObject)Instantiate(GameField.Cell, new Vector3(point.X - GameField.halfWidth, 0f, point.Y - GameField.halfHeight), Quaternion.identity)).GetComponent(typeof(VirusCell));
+        var cell = GameField.VirusGrid[point.Y * GameField.Width + point.X];
         cell.PlayerNumber = playerNumber;
-        cell.X = point.X;
-        cell.Y = point.Y;
 
         //TODO заменить на мутацию
         cell.Strength = Strength;
@@ -210,6 +215,8 @@ public class VirusCell : MonoBehaviour
         cell.Dexterity = Dexterity;
         cell.minReproductiveAge = minReproductiveAge;
         cell.maxReproductiveAge = maxReproductiveAge;
+        cell.ResetParams();
+        cell.IsAlive = true;
 
         GameField.AddCell(cell);
     }
@@ -226,12 +233,6 @@ public class VirusCell : MonoBehaviour
         {
             var gridPoint = point.Y * GameField.Width + point.X;
             GameField.VirusGrid[gridPoint].TakeDamage(damage);
-            /*if (GameField.virusGrid[gridPoint].Health < 0 && Random.value < .24f)
-            {
-                var points = new Point[1];
-                points[0] = point;
-                Reproduce(points);
-            }*/
         }
     }
 
@@ -242,9 +243,9 @@ public class VirusCell : MonoBehaviour
 
     public void Die()
     {
-        GameField.decreaseCellCount((int)playerNumber);
-        DestroyImmediate(renderer.materials[0]);
-        Destroy(gameObject);
+        IsAlive = false;
+        GameField.DecreaseCellCount((int)playerNumber);
+        PlayerNumber = PlayerNumber.None;
     }
 
     private void SetColor(Color color)
@@ -254,7 +255,7 @@ public class VirusCell : MonoBehaviour
 
     private void TryReproduce()
     {
-        reproductiveTimer += Time.deltaTime;
+        reproductiveTimer += Time.deltaTime * TimeScale;
 
         var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
         var timeValue = ageCoef / reproductiveAges;
