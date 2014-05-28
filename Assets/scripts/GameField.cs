@@ -71,41 +71,43 @@ public class GameField : MonoBehaviour {
 	public Neighbours GetNeighbours(int x, int y)
 	{
 		int i, j;
-		var neighbours = new Neighbours{};
-		var freeCells = new ArrayList();
-		var enemyCells = new ArrayList();
+	    int free = 0;
+	    int enemy = 0;
 
-		for(i = x - 1; i <= x + 1; i++){
-			for(j = y - 1; j <= y + 1; j++){
-				if(i == x && j == y) continue;
-				if(i >= 0 && i < Width && j >= 0 && j < Height) {
-					var testedPoint = VirusGrid [j*Width + i];
-					var point = new Point(i, j);
-					if(testedPoint.PlayerNumber == PlayerNumber.None) {
-						freeCells.Add(point);
-					}
-					else {
-						if(testedPoint.PlayerNumber != VirusGrid[y*Width + x].PlayerNumber) {
-							enemyCells.Add(point);
-						}
-					}
-				}
-			}
-		}
+        Neighbours neighbours;
 
-		//-----------------------------------------------------------------------------//
-		// TODO ИЗБАВИТЬСЯ ОТ ЭТОЙ ГРЁБАНОЙ КОНВЕРТАЦИИ из ArrayList в Point[], 
-		// В ИДЕАЛЕ ВООБЩЕ РАБОТАТЬ НЕ С ПОИНТАМИ А С ИНТОМ-Смещением ТИПА X * WIDTH + Y 
-		// НО ДЛЯ REPRODUCE НАМ НУЖНЫ КООРД-ТЫ x y z для Vector3d - не смог это пофиксить
-		// 
-		// конструкция типа Point point = new Point(i, j); в теле цикла жутко убога
-		// и маст дай. ЗЫ вроде выиграл пару фпс :)
-		//-----------------------------------------------------------------------------//
+        neighbours.FreeCells = new Point[8];
+        neighbours.EnemyCells = new Point[8];
 
-		neighbours.FreeCells = (Point[]) freeCells.ToArray(typeof(Point));
-		neighbours.EnemyCells = (Point[]) enemyCells.ToArray(typeof(Point));
+	    for (i = x - 1; i <= x + 1; i++)
+	    {
+	        for (j = y - 1; j <= y + 1; j++)
+	        {
+	            if (i == x && j == y) continue;
+	            if (i >= 0 && i < Width && j >= 0 && j < Height)
+	            {
+	                var testedPoint = VirusGrid[j*Width + i];
+	                var point = new Point(i, j);
+	                if (testedPoint.PlayerNumber == PlayerNumber.None)
+	                {
+	                    neighbours.FreeCells[free] = point;
+	                    free++;
+	                }
+	                else
+	                {
+	                    if (testedPoint.PlayerNumber != VirusGrid[y*Width + x].PlayerNumber)
+	                    {
+	                        neighbours.EnemyCells[enemy] = point;
+	                        enemy++;
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    neighbours.freeCells = free;
+		neighbours.enemyCells = enemy;
 
-		return neighbours;
+	    return neighbours;
 	}
 
 	public void AddCell (VirusCell cell)

@@ -130,33 +130,28 @@ public class VirusCell : MonoBehaviour
             return;
         }
         age += Time.deltaTime * TimeScale;
+        reproductiveTimer += Time.deltaTime * TimeScale;
+        attackTimer += Time.deltaTime * TimeScale;
 
         neighbours = GameField.GetNeighbours(X, Y);
-        var emptyLength = neighbours.FreeCells.Length;
-        var enemyLength = neighbours.EnemyCells.Length;
 
         //SetMaterialNeighbours();
 
-        if (emptyLength >= 2 && emptyLength < 8)
+        if (neighbours.freeCells >= 2 && neighbours.freeCells < 8)
         {
             if (age > reproductiveAgeBounds.x && age < reproductiveAgeBounds.y)
             {
                 TryReproduce();
             }
         }
-        /*if (emptyLength == 0)
-        {
-            Die();
-            return;
-        }*/
 
-        if (enemyLength > 0)
+        if (neighbours.enemyCells > 0)
         {
             if (attackTimer > attackSpeed)
             {
                 Attack(neighbours.EnemyCells);
+                attackTimer = 0f;
             }
-            attackTimer += Time.deltaTime * TimeScale;
         }
     }
 
@@ -198,7 +193,7 @@ public class VirusCell : MonoBehaviour
     void Reproduce(Point[] freeCells)
     {
         //Debug.Log(freeCells.Length);
-        var id = Random.Range(0, freeCells.Length);
+        var id = Random.Range(0, neighbours.freeCells);
         var point = freeCells[id];
 
         //------------------------------------------------------------------------------
@@ -223,7 +218,7 @@ public class VirusCell : MonoBehaviour
 
     void Attack(Point[] enemyCells)// здесь избавиться можно прямо сейчас
     {
-        var point = enemyCells[Random.Range(0, enemyCells.Length)];
+        var point = enemyCells[Random.Range(0, neighbours.enemyCells)];
         var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
         var timeValue = ageCoef / reproductiveAges;
 
@@ -255,8 +250,6 @@ public class VirusCell : MonoBehaviour
 
     private void TryReproduce()
     {
-        reproductiveTimer += Time.deltaTime * TimeScale;
-
         var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
         var timeValue = ageCoef / reproductiveAges;
         var reproductiveAge = (maxReproductiveAge - minReproductiveAge) / 100f;
