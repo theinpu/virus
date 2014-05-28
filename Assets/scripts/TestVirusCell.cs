@@ -44,13 +44,11 @@ public class TestVirusCell : MonoBehaviour
 
     private float reproductiveTimer = 0;
     private float attackTimer = 0;
-    private float agingTimer = 0;
 
     private float damage;
     private float attackSpeed;
 
     private PlayerNumber playerNumber;
-    private Neighbours neighbours;
 
     private float reproductiveAges;
     private int count;

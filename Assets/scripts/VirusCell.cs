@@ -42,17 +42,19 @@ public class VirusCell : MonoBehaviour
     private float maxAge;
     private Vector2 reproductiveAgeBounds;
 
+    private Point[] EnemyCells = new Point[8];
+    private Point[] EmptyCells = new Point[8];
+    private Point neighbours;
+
     private float mutationFactor = 1f;
 
     private float reproductiveTimer = 0;
     private float attackTimer = 0;
-    private float agingTimer = 0;
 
     private float damage;
     private float attackSpeed;
 
     private PlayerNumber playerNumber;
-    private Neighbours neighbours;
 
     private float reproductiveAges;
 
@@ -130,33 +132,28 @@ public class VirusCell : MonoBehaviour
             return;
         }
         age += Time.deltaTime * TimeScale;
+        reproductiveTimer += Time.deltaTime * TimeScale;
+        attackTimer += Time.deltaTime * TimeScale;
 
-        neighbours = GameField.GetNeighbours(X, Y);
-        var emptyLength = neighbours.FreeCells.Length;
-        var enemyLength = neighbours.EnemyCells.Length;
+        neighbours = GameField.GetNeighbours(X, Y, EmptyCells, EnemyCells, (int)playerNumber);
 
-        //SetMaterialNeighbours();
+        SetMaterialNeighbours();
 
-        if (emptyLength >= 2 && emptyLength < 8)
+        if (neighbours.X >= 2 && neighbours.X < 8)
         {
             if (age > reproductiveAgeBounds.x && age < reproductiveAgeBounds.y)
             {
                 TryReproduce();
             }
         }
-        /*if (emptyLength == 0)
-        {
-            Die();
-            return;
-        }*/
 
-        if (enemyLength > 0)
+        if (neighbours.Y > 0)
         {
             if (attackTimer > attackSpeed)
             {
-                Attack(neighbours.EnemyCells);
+                Attack(EnemyCells);
+                attackTimer = 0f;
             }
-            attackTimer += Time.deltaTime * TimeScale;
         }
     }
 
@@ -198,7 +195,7 @@ public class VirusCell : MonoBehaviour
     void Reproduce(Point[] freeCells)
     {
         //Debug.Log(freeCells.Length);
-        var id = Random.Range(0, freeCells.Length);
+        var id = Random.Range(0, neighbours.X);
         var point = freeCells[id];
 
         //------------------------------------------------------------------------------
@@ -215,15 +212,16 @@ public class VirusCell : MonoBehaviour
         cell.Dexterity = Dexterity;
         cell.minReproductiveAge = minReproductiveAge;
         cell.maxReproductiveAge = maxReproductiveAge;
-        cell.ResetParams();
         cell.IsAlive = true;
+
+        cell.ResetParams();
 
         GameField.AddCell(cell);
     }
 
-    void Attack(Point[] enemyCells)// здесь избавиться можно прямо сейчас
+    void Attack(Point[] targetCells)
     {
-        var point = enemyCells[Random.Range(0, enemyCells.Length)];
+        var point = targetCells[Random.Range(0, neighbours.Y)];
         var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
         var timeValue = ageCoef / reproductiveAges;
 
@@ -243,8 +241,8 @@ public class VirusCell : MonoBehaviour
 
     public void Die()
     {
+        GameField.DecreaseCellCount((int) playerNumber);
         IsAlive = false;
-        GameField.DecreaseCellCount((int)playerNumber);
         PlayerNumber = PlayerNumber.None;
     }
 
@@ -255,8 +253,6 @@ public class VirusCell : MonoBehaviour
 
     private void TryReproduce()
     {
-        reproductiveTimer += Time.deltaTime * TimeScale;
-
         var ageCoef = Mathf.Clamp(age, reproductiveAgeBounds.x, reproductiveAgeBounds.y) - reproductiveAgeBounds.x;
         var timeValue = ageCoef / reproductiveAges;
         var reproductiveAge = (maxReproductiveAge - minReproductiveAge) / 100f;
@@ -267,7 +263,7 @@ public class VirusCell : MonoBehaviour
 
         if (reproductiveTimer > ReproductiveSpeed)
         {
-            Reproduce(neighbours.FreeCells);
+            Reproduce(EmptyCells);
             reproductiveTimer = 0f;
         }
     }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Xml;
+using UnityEngine;
 using System.Collections;
 
 public class GameField : MonoBehaviour {
@@ -67,45 +68,39 @@ public class GameField : MonoBehaviour {
 	                       + "\nD:" + gameGlobal.PlayerSetting[i].Dexterity;
 	    }
 	}
-    
-	public Neighbours GetNeighbours(int x, int y)
+
+    public Point GetNeighbours(int x, int y, Point[] emptyCells, Point[] enemyCells, int player)
 	{
 		int i, j;
-		var neighbours = new Neighbours{};
-		var freeCells = new ArrayList();
-		var enemyCells = new ArrayList();
-
+        Point neighbours;
+        int enemyCellCount = 0;
+        int emptyCellCount = 0;
 		for(i = x - 1; i <= x + 1; i++){
 			for(j = y - 1; j <= y + 1; j++){
 				if(i == x && j == y) continue;
 				if(i >= 0 && i < Width && j >= 0 && j < Height) {
-					var testedPoint = VirusGrid [j*Width + i];
-					var point = new Point(i, j);
-					if(testedPoint.PlayerNumber == PlayerNumber.None) {
-						freeCells.Add(point);
-					}
-					else {
-						if(testedPoint.PlayerNumber != VirusGrid[y*Width + x].PlayerNumber) {
-							enemyCells.Add(point);
-						}
-					}
+					var testedCell = VirusGrid [j*Width + i];
+
+                    if (testedCell.PlayerNumber == PlayerNumber.None)
+                    {
+                        emptyCells[emptyCellCount].X = testedCell.X;
+                        emptyCells[emptyCellCount].Y = testedCell.Y;
+                        emptyCellCount++;
+                    }
+                    else if ((int) testedCell.PlayerNumber != player)
+                    {
+                        enemyCells[enemyCellCount].X = testedCell.X;
+                        enemyCells[enemyCellCount].Y = testedCell.Y;
+                        enemyCellCount++;
+                    }
 				}
 			}
 		}
 
-		//-----------------------------------------------------------------------------//
-		// TODO ИЗБАВИТЬСЯ ОТ ЭТОЙ ГРЁБАНОЙ КОНВЕРТАЦИИ из ArrayList в Point[], 
-		// В ИДЕАЛЕ ВООБЩЕ РАБОТАТЬ НЕ С ПОИНТАМИ А С ИНТОМ-Смещением ТИПА X * WIDTH + Y 
-		// НО ДЛЯ REPRODUCE НАМ НУЖНЫ КООРД-ТЫ x y z для Vector3d - не смог это пофиксить
-		// 
-		// конструкция типа Point point = new Point(i, j); в теле цикла жутко убога
-		// и маст дай. ЗЫ вроде выиграл пару фпс :)
-		//-----------------------------------------------------------------------------//
+        neighbours.X = emptyCellCount;
+        neighbours.Y = enemyCellCount;
 
-		neighbours.FreeCells = (Point[]) freeCells.ToArray(typeof(Point));
-		neighbours.EnemyCells = (Point[]) enemyCells.ToArray(typeof(Point));
-
-		return neighbours;
+        return neighbours;
 	}
 
 	public void AddCell (VirusCell cell)
