@@ -15,7 +15,7 @@ public class GameField : MonoBehaviour {
 	public int halfWidth;
 	public int halfHeight;
 
-	public float TimeScale = 1f;
+	public float TimeScale = 10f;
 
 	public VirusCell[] VirusGrid;
 
@@ -58,7 +58,7 @@ public class GameField : MonoBehaviour {
 	}
 
 	void OnGUI() {
-		Time.timeScale = GUI.HorizontalSlider(new Rect(Screen.width/2 - 100, 10, 200, 50), Time.timeScale, 10F, 50F);
+		Time.timeScale = GUI.HorizontalSlider(new Rect(Screen.width/2 - 100, 10, 200, 50), Time.timeScale, 10F, 100F);
 	    for (int i = 0, c = gameGlobal.PlayerCount; i < c; i++)
 	    {
 	        Info[i].text = "Population: " + PlayerCellCount[i]
