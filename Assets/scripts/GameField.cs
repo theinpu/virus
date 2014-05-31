@@ -58,7 +58,7 @@ public class GameField : MonoBehaviour {
 	}
 
 	void OnGUI() {
-		Time.timeScale = GUI.HorizontalSlider(new Rect(Screen.width/2 - 100, 10, 200, 50), Time.timeScale, 0.5F, 50.0F);
+		Time.timeScale = GUI.HorizontalSlider(new Rect(Screen.width/2 - 100, 10, 200, 50), Time.timeScale, 10F, 50F);
 	    for (int i = 0, c = gameGlobal.PlayerCount; i < c; i++)
 	    {
 	        Info[i].text = "Population: " + PlayerCellCount[i]
