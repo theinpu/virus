@@ -61,8 +61,8 @@ public class GameLobby : MonoBehaviour
         GUI.Label(new Rect(10, 60, 150, 20), "Game field width: " + gameGlobal.GameSettings.FieldWidth);
         GUI.Label(new Rect(10, 110, 150, 20), "Game field height: " + gameGlobal.GameSettings.FieldHeight);
 
-        gameGlobal.GameSettings.FieldWidth = (int)GUI.HorizontalSlider(new Rect(10, 80, 100, 30), gameGlobal.GameSettings.FieldWidth, 16, 48);
-        gameGlobal.GameSettings.FieldHeight = (int)GUI.HorizontalSlider(new Rect(10, 130, 100, 30), gameGlobal.GameSettings.FieldHeight, 16, 48);
+        gameGlobal.GameSettings.FieldWidth = (int)GUI.HorizontalSlider(new Rect(10, 80, 100, 30), gameGlobal.GameSettings.FieldWidth, 8, 42);
+        gameGlobal.GameSettings.FieldHeight = (int)GUI.HorizontalSlider(new Rect(10, 130, 100, 30), gameGlobal.GameSettings.FieldHeight, 8, 42);
 
         var dist = Mathf.Max(gameGlobal.GameSettings.FieldWidth, gameGlobal.GameSettings.FieldHeight);
         Camera.main.transform.position = new Vector3(0, dist + 3f, 0);

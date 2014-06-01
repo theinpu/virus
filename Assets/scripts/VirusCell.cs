@@ -101,6 +101,7 @@ public class VirusCell : MonoBehaviour
         {
             isAlive = value;
             gameObject.SetActive(isAlive);
+            //renderer.enabled = value;
         }
     }
 
@@ -121,9 +122,48 @@ public class VirusCell : MonoBehaviour
         reproductiveAges = reproductiveAgeBounds.y - reproductiveAgeBounds.x;
     }
 
+    void Start()
+    {
+        var mesh = new Mesh();
+        GetComponent<MeshFilter>().mesh = mesh;
+
+        var size = 0.75f;
+        var vertexes = new[]
+        {
+            new Vector3(-size, 0, -size),
+            new Vector3(size, 0, -size),
+            new Vector3(-size, 0, size),
+            new Vector3(size, 0, size)
+        };
+
+        var triangles = new[]
+        {
+            0, 2, 1,
+            2, 3, 1
+        };
+
+        var uv = new[]
+        {
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+            new Vector2(0, 1), 
+            new Vector2(1, 1)
+        };
+
+        var normals = new[]
+        {
+            Vector3.up, Vector3.up, Vector3.up, Vector3.up
+        };
+
+        mesh.vertices = vertexes;
+        mesh.normals = normals;
+        mesh.triangles = triangles;
+        mesh.uv = uv;
+    }
+
     void Update()
     {
-        if (!IsAlive) return;
+        if (!isAlive) return;
         if (age > maxAge || health <= 0f)
         {
             Die();
@@ -158,9 +198,9 @@ public class VirusCell : MonoBehaviour
     private void SetMaterial()
     {
         var radius = (age * 0.1f) / maxAge + 0.25f;
-        //radius -= (Mathf.Sin(age * Random.value) / 10f);
-        radius = Mathf.Clamp(radius, 0.25f, 0.35f);
-        var grayVal = Mathf.Clamp(0.5f - (health * 0.5f) / maxHealth, 0, 0.5f);
+        //radius -= (Mathf.Sin(age * Random.value) / 20f);
+        radius = Mathf.Clamp(radius, 0.15f, 0.35f);
+        var grayVal = Mathf.Clamp(1f - (health) / maxHealth, 0, 1f);
         renderer.material.SetFloat("_Radius", radius);
         renderer.material.SetFloat("_GrayVal", grayVal);
     }
