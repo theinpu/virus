@@ -135,9 +135,9 @@ public class VirusCell : MonoBehaviour
 
         neighbours = GameField.GetNeighbours(X, Y);
 
-        //SetMaterialNeighbours();
+        SetMaterial();
 
-        if (neighbours.freeCells >= 2 && neighbours.freeCells < 8)
+        if (neighbours.freeCells >= 2)
         {
             if (age > reproductiveAgeBounds.x && age < reproductiveAgeBounds.y)
             {
@@ -155,30 +155,14 @@ public class VirusCell : MonoBehaviour
         }
     }
 
-    private void SetMaterialNeighbours()
+    private void SetMaterial()
     {
-        var cells = new Vector4();
-
-        var i = 0; var x = X; var y = Y - 1;
-        if (y >= 0) i = GetCellType(x, y);
-        cells.x = i;
-        //renderer.material.SetFloat("bottomMiddle", i);
-
-        i = 0; x = X - 1; y = Y;
-        if (x >= 0) i = GetCellType(x, y);
-        cells.y = i;
-        //renderer.material.SetFloat("middleLeft", i);
-
-        i = 0; x = X + 1; y = Y;
-        if (x < GameField.Width) i = GetCellType(x, y);
-        cells.z = i;
-        //renderer.material.SetFloat("middleRight", i);
-
-        i = 0; x = X; y = Y + 1;
-        if (y < GameField.Height) i = GetCellType(x, y);
-        cells.w = i;
-
-        renderer.material.SetVector("cells", cells);
+        var radius = (age * 0.1f) / maxAge + 0.25f;
+        //radius -= (Mathf.Sin(age * Random.value) / 10f);
+        radius = Mathf.Clamp(radius, 0.25f, 0.35f);
+        var grayVal = Mathf.Clamp(0.5f - (health * 0.5f) / maxHealth, 0, 0.5f);
+        renderer.material.SetFloat("_Radius", radius);
+        renderer.material.SetFloat("_GrayVal", grayVal);
     }
 
     private int GetCellType(int x, int y)

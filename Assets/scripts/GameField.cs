@@ -30,6 +30,9 @@ public class GameField : MonoBehaviour {
 	    Width = gameGlobal.GameSettings.FieldWidth;
 	    Height = gameGlobal.GameSettings.FieldHeight;
 
+        var dist = Mathf.Max(Width, Height);
+        Camera.main.transform.position = new Vector3(0, dist + 3f, 0);
+
 		PlayerCellCount = new int[PlayerCount];
 		for(int i = 0; i < 4; i++) {
 			if(i >= PlayerCount) {

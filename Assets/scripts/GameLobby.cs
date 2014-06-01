@@ -17,7 +17,6 @@ public class GameLobby : MonoBehaviour
     {
         var gameGlobalObject = GameObject.Find("GameGlobal");
         gameGlobal = (GameGlobalScript)gameGlobalObject.GetComponent(typeof(GameGlobalScript));
-
         grid = (GridOverlay)Camera.main.GetComponent(typeof(GridOverlay));
     }
 
@@ -48,15 +47,31 @@ public class GameLobby : MonoBehaviour
                 DrawStartPositionSelect();
                 break;
         }
+        if (GUI.Button(new Rect(Screen.width - 110, 10, 100, 30), "Exit"))
+        {
+            Application.Quit();
+        }
     }
 
     void DrawDefaultScreen()
     {
         GUI.Label(new Rect(10, 10, 100, 20), "Players: " + gameGlobal.PlayerCount);
-        gameGlobal.PlayerCount = (int)GUI.HorizontalSlider(new Rect(10, 30, 100, 50), gameGlobal.PlayerCount, 2, 4);
-        if (GUI.Button(new Rect(10, 80, 100, 30), "Next"))
+        gameGlobal.PlayerCount = (int)GUI.HorizontalSlider(new Rect(10, 30, 100, 30), gameGlobal.PlayerCount, 2, 4);
+
+        GUI.Label(new Rect(10, 60, 150, 20), "Game field width: " + gameGlobal.GameSettings.FieldWidth);
+        GUI.Label(new Rect(10, 110, 150, 20), "Game field height: " + gameGlobal.GameSettings.FieldHeight);
+
+        gameGlobal.GameSettings.FieldWidth = (int)GUI.HorizontalSlider(new Rect(10, 80, 100, 30), gameGlobal.GameSettings.FieldWidth, 16, 48);
+        gameGlobal.GameSettings.FieldHeight = (int)GUI.HorizontalSlider(new Rect(10, 130, 100, 30), gameGlobal.GameSettings.FieldHeight, 16, 48);
+
+        var dist = Mathf.Max(gameGlobal.GameSettings.FieldWidth, gameGlobal.GameSettings.FieldHeight);
+        Camera.main.transform.position = new Vector3(0, dist + 3f, 0);
+        grid.Reset();
+
+        if (GUI.Button(new Rect(10, 200, 100, 30), "Next"))
         {
             gameGlobal.InitPlayerSettings();
+
             state++;
             grid.Visible = true;
 

@@ -26,13 +26,21 @@ public class GridOverlay : MonoBehaviour
 
     void Start()
     {
-        halfWidth = GameGlobal.GameSettings.FieldWidth / 2;
-        halfHeight = GameGlobal.GameSettings.FieldHeight / 2;
+        //halfWidth = GameGlobal.GameSettings.FieldWidth / 2;
+        //halfHeight = GameGlobal.GameSettings.FieldHeight / 2;
 
         plane = new Plane(Vector3.up, 0);
 
-        fieldRect = new Rect(0, 0, GameGlobal.GameSettings.FieldWidth, GameGlobal.GameSettings.FieldHeight);
+        //fieldRect = new Rect(0, 0, GameGlobal.GameSettings.FieldWidth, GameGlobal.GameSettings.FieldHeight);
         FieldPoint = new Point();
+    }
+
+    public void Reset()
+    {
+        halfWidth = GameGlobal.GameSettings.FieldWidth / 2;
+        halfHeight = GameGlobal.GameSettings.FieldHeight / 2;
+
+        fieldRect = new Rect(0, 0, GameGlobal.GameSettings.FieldWidth, GameGlobal.GameSettings.FieldHeight);
     }
 
     void CreateLineMaterial()
