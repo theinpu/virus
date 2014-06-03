@@ -26,6 +26,7 @@ public class GridOverlay : MonoBehaviour
 
     void Start()
     {
+        GameGlobal = FindObjectOfType<GameGlobalScript>();
         //halfWidth = GameGlobal.GameSettings.FieldWidth / 2;
         //halfHeight = GameGlobal.GameSettings.FieldHeight / 2;
 
