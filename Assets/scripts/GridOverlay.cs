@@ -20,9 +20,15 @@ public class GridOverlay : MonoBehaviour
 
     private List<GridPoint> points = new List<GridPoint>();
 
-    public void AddPoint(Color color)
+    public bool AddPoint(Color color)
     {
-        points.Add(new GridPoint(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight), color));
+        var point = new GridPoint(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight), color);
+        if (points.Contains(point))
+        {
+            return false;
+        }
+        points.Add(point);
+        return true;
     }
 
     void Start()

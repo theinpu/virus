@@ -34,9 +34,11 @@ public class GameLobby : MonoBehaviour
         {
             if (Input.GetMouseButtonUp(0) && grid.IsInField() && playerClicks < GameGlobalScript.MaxCells)
             {
-                gameGlobal.PlayerSetting[playerSettingsCurrent].StartingPosition[playerClicks] = grid.FieldPoint;
-                playerClicks++;
-                grid.AddPoint(playerColors[playerSettingsCurrent]);
+                gameGlobal.PlayerSetting[playerSettingsCurrent].StartingPosition[playerClicks] = grid.FieldPoint;                
+                if (grid.AddPoint(playerColors[playerSettingsCurrent]))
+                {
+                    playerClicks++;
+                }
             }
         }
     }
@@ -101,7 +103,7 @@ public class GameLobby : MonoBehaviour
             var lifeCycle = Mathf.Floor((maxAgeRep - minAgeRep) / PlayerSetting.BoundsMultiplier + 0.5f);
             var unspentPoints = PlayerSetting.MaxPoint - lifeCycle - strength - endurance - dexterity;
 
-            GUI.Label(new Rect(10, 30, 100, 20), "Points: " + (int)unspentPoints);
+            GUI.Label(new Rect(10, 30, 100, 20), "Cells left: " + (5 - playerClicks));
             GUI.Label(new Rect(10, 50, 150, 30), "Power: " + (int)strength);
             GUI.Label(new Rect(10, 90, 150, 30), "Vitality: " + (int)endurance);
             GUI.Label(new Rect(10, 130, 150, 30), "Speed: " + (int)dexterity);
@@ -124,6 +126,8 @@ public class GameLobby : MonoBehaviour
 
             if (GUI.Button(new Rect(10, 260, 100, 30), "Next"))
             {
+                if (playerClicks < 5) return;
+
                 playerSettingsCurrent++;
                 playerClicks = 0;
                 if (playerSettingsCurrent < gameGlobal.PlayerCount)
