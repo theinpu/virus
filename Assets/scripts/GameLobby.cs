@@ -12,6 +12,14 @@ public class GameLobby : MonoBehaviour
 
     private const float Epsilon = 0.0001f;
 
+    private Color[] playerColors =
+    {
+        new Color(1f, 0, 0, 0.75f), 
+        new Color(0, 0, 1f, 0.75f), 
+        new Color(0, 1f, 0, 0.75f), 
+        new Color(1f, 1f, 0, 0.75f)
+    };
+
     // Use this for initialization
     void Start()
     {
@@ -28,7 +36,7 @@ public class GameLobby : MonoBehaviour
             {
                 gameGlobal.PlayerSetting[playerSettingsCurrent].StartingPosition[playerClicks] = grid.FieldPoint;
                 playerClicks++;
-                grid.AddPoint();
+                grid.AddPoint(playerColors[playerSettingsCurrent]);
             }
         }
     }
@@ -75,7 +83,7 @@ public class GameLobby : MonoBehaviour
             state++;
             grid.Visible = true;
 
-            grid.RectColor = new Color(1f, 0f, 0f, .75f);
+            grid.RectColor = playerColors[0];
         }
     }
 
@@ -118,7 +126,10 @@ public class GameLobby : MonoBehaviour
             {
                 playerSettingsCurrent++;
                 playerClicks = 0;
-                grid.RectColor = new Color(0f, 0f, 1f, .75f);
+                if (playerSettingsCurrent < gameGlobal.PlayerCount)
+                {
+                    grid.RectColor = playerColors[playerSettingsCurrent];
+                }
             }
         }
         else

@@ -1,140 +1,155 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 
-public class GameField : MonoBehaviour {
+public class GameField : MonoBehaviour
+{
 
-	public int PlayerCount = 2;
+    public int PlayerCount = 2;
 
-	public GUIText[] Info;
-	public int[] PlayerCellCount;
+    public GUIText[] Info;
+    public int[] PlayerCellCount;
 
-	public GameObject Cell;
-	public int Width;
-	public int Height;
-	
-	public int halfWidth;
-	public int halfHeight;
+    public GameObject Cell;
+    public int Width;
+    public int Height;
 
-	public float TimeScale = 10f;
+    public int halfWidth;
+    public int halfHeight;
 
-	public VirusCell[] VirusGrid;
+    public float TimeScale = 10f;
 
-	private GameGlobalScript gameGlobal;
+    public VirusCell[] VirusGrid;
 
-	// Use this for initialization
-	void Start () {
+    private GameGlobalScript gameGlobal;
 
-		var gameGlobalObject = GameObject.Find("GameGlobal");
-		gameGlobal = (GameGlobalScript)gameGlobalObject.GetComponent(typeof(GameGlobalScript));
+    // Use this for initialization
+    void Start()
+    {
 
-	    Width = gameGlobal.GameSettings.FieldWidth;
-	    Height = gameGlobal.GameSettings.FieldHeight;
+        var gameGlobalObject = GameObject.Find("GameGlobal");
+        gameGlobal = (GameGlobalScript)gameGlobalObject.GetComponent(typeof(GameGlobalScript));
+
+        Width = gameGlobal.GameSettings.FieldWidth;
+        Height = gameGlobal.GameSettings.FieldHeight;
 
         var dist = Mathf.Max(Width, Height);
         Camera.main.transform.position = new Vector3(0, dist + 3f, 0);
 
-		PlayerCellCount = new int[PlayerCount];
-		for(int i = 0; i < 4; i++) {
-			if(i >= PlayerCount) {
-				Info[i].enabled = false;
-			}
-		}
+        PlayerCount = gameGlobal.PlayerCount;
+        PlayerCellCount = new int[PlayerCount];
+        for (int i = 0; i < 4; i++)
+        {
+            if (i >= PlayerCount)
+            {
+                Info[i].enabled = false;
+            }
+        }
 
-		VirusGrid = new VirusCell[Height* Width];
+        VirusGrid = new VirusCell[Height * Width];
 
-		halfWidth = Width / 2;
-		halfHeight = Height / 2;
+        halfWidth = Width / 2;
+        halfHeight = Height / 2;
 
-		InitFirstPopulation();
-		Time.timeScale = TimeScale;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		int losers = 0;        
-		for(int i = 0; i < PlayerCount; i++) {
-			if(PlayerCellCount[i] == 0) losers++;
-		}
-		if(losers == PlayerCount - 1) {
-			Application.LoadLevel("win");
-		}
-	}
+        InitFirstPopulation();
+        Time.timeScale = TimeScale;
+    }
 
-	void OnGUI() {
-		Time.timeScale = GUI.HorizontalSlider(new Rect(Screen.width/2 - 100, 10, 200, 50), Time.timeScale, 10F, 100F);
-	    for (int i = 0, c = gameGlobal.PlayerCount; i < c; i++)
-	    {
-	        Info[i].text = "Population: " + PlayerCellCount[i]
-	                       + "\nS:" + gameGlobal.PlayerSetting[i].Strength
-	                       + "\nE:" + gameGlobal.PlayerSetting[i].Endurance
-	                       + "\nD:" + gameGlobal.PlayerSetting[i].Dexterity;
-	    }
-	}
-    
-	public Neighbours GetNeighbours(int x, int y)
-	{
-		int i, j;
-	    int free = 0;
-	    int enemy = 0;
+    // Update is called once per frame
+    void Update()
+    {
+        int losers = 0;
+        for (int i = 0; i < PlayerCount; i++)
+        {
+            if (PlayerCellCount[i] == 0) losers++;
+        }
+        if (losers == PlayerCount - 1)
+        {
+            Application.LoadLevel("win");
+        }
+    }
+
+    void OnGUI()
+    {
+        Time.timeScale = GUI.HorizontalSlider(new Rect(Screen.width / 2 - 100, 10, 200, 50), Time.timeScale, 10F, 100F);
+        for (int i = 0, c = gameGlobal.PlayerCount; i < c; i++)
+        {
+            Info[i].text = "Population: " + PlayerCellCount[i]
+                           + "\nS:" + gameGlobal.PlayerSetting[i].Strength
+                           + "\nE:" + gameGlobal.PlayerSetting[i].Endurance
+                           + "\nD:" + gameGlobal.PlayerSetting[i].Dexterity;
+        }
+    }
+
+    public Neighbours GetNeighbours(int x, int y)
+    {
+        int i, j;
+        int free = 0;
+        int enemy = 0;
 
         Neighbours neighbours;
 
         neighbours.FreeCells = new Point[8];
         neighbours.EnemyCells = new Point[8];
 
-	    for (i = x - 1; i <= x + 1; i++)
-	    {
-	        for (j = y - 1; j <= y + 1; j++)
-	        {
-	            if (i == x && j == y) continue;
-	            if (i >= 0 && i < Width && j >= 0 && j < Height)
-	            {
-	                var testedPoint = VirusGrid[j*Width + i];
-	                var point = new Point(i, j);
-	                if (testedPoint.PlayerNumber == PlayerNumber.None)
-	                {
-	                    neighbours.FreeCells[free] = point;
-	                    free++;
-	                }
-	                else
-	                {
-	                    if (testedPoint.PlayerNumber != VirusGrid[y*Width + x].PlayerNumber)
-	                    {
-	                        neighbours.EnemyCells[enemy] = point;
-	                        enemy++;
-	                    }
-	                }
-	            }
-	        }
-	    }
-	    neighbours.freeCells = free;
-		neighbours.enemyCells = enemy;
+        for (i = x - 1; i <= x + 1; i++)
+        {
+            for (j = y - 1; j <= y + 1; j++)
+            {
+                if (i == x && j == y) continue;
+                if (i >= 0 && i < Width && j >= 0 && j < Height)
+                {
+                    var testedPoint = VirusGrid[j * Width + i];
+                    var point = new Point(i, j);
+                    if (testedPoint.PlayerNumber == PlayerNumber.None)
+                    {
+                        neighbours.FreeCells[free] = point;
+                        free++;
+                    }
+                    else
+                    {
+                        if (testedPoint.PlayerNumber != VirusGrid[y * Width + x].PlayerNumber)
+                        {
+                            neighbours.EnemyCells[enemy] = point;
+                            enemy++;
+                        }
+                    }
+                }
+            }
+        }
+        neighbours.freeCells = free;
+        neighbours.enemyCells = enemy;
 
-	    return neighbours;
-	}
-
-	public void AddCell (VirusCell cell)
-	{
-		var i = (int)cell.PlayerNumber;
-		PlayerCellCount[i]++;
-	}
-
-	public void DecreaseCellCount (int i)
-	{
-		PlayerCellCount[i]--;
+        return neighbours;
     }
 
-	private void InitFirstPopulation() {
-		int x, y;
-		for(x = 0; x < Width; x++) {
-			for(y = 0; y < Height; y++) {
-			    NewCell(x, y);
-			}
-		}
+    public void AddCell(VirusCell cell)
+    {
+        var i = (int)cell.PlayerNumber;
+        PlayerCellCount[i]++;
+    }
 
-	    CreatePlayerCell((int)PlayerNumber.One);
-        CreatePlayerCell((int)PlayerNumber.Two);
-	}
+    public void DecreaseCellCount(int i)
+    {
+        PlayerCellCount[i]--;
+    }
+
+    private void InitFirstPopulation()
+    {
+        int x, y;
+        for (x = 0; x < Width; x++)
+        {
+            for (y = 0; y < Height; y++)
+            {
+                NewCell(x, y);
+            }
+        }
+
+        for (var i = 0; i < gameGlobal.PlayerCount; i++)
+        {
+            CreatePlayerCell(i);
+        }
+    }
 
     private void NewCell(int x, int y)
     {
@@ -170,9 +185,9 @@ public class GameField : MonoBehaviour {
             var x = playerSetting.StartingPosition[i].X;
             var y = playerSetting.StartingPosition[i].Y;
 
-            var cell = VirusGrid[y*Width + x];
+            var cell = VirusGrid[y * Width + x];
 
-            cell.PlayerNumber = (PlayerNumber) id;
+            cell.PlayerNumber = (PlayerNumber)id;
             cell.X = x;
             cell.Y = y;
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class GridOverlay : MonoBehaviour
@@ -17,11 +18,11 @@ public class GridOverlay : MonoBehaviour
     private Plane plane;
     private Rect fieldRect;
 
-    private List<Vector3> points = new List<Vector3>();
+    private List<GridPoint> points = new List<GridPoint>();
 
-    public void AddPoint()
+    public void AddPoint(Color color)
     {
-        points.Add(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight));
+        points.Add(new GridPoint(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight), color));
     }
 
     void Start()
@@ -81,6 +82,36 @@ public class GridOverlay : MonoBehaviour
         // set the current material
         lineMaterial.SetPass(0);
 
+        if (IsInField())
+        {
+            GL.Begin(GL.QUADS);
+
+            GL.Color(RectColor);
+
+            GL.Vertex3(mousePosition.x - .49f, 0, mousePosition.z - .48f);
+            GL.Vertex3(mousePosition.x + .51f, 0, mousePosition.z - .48f);
+            GL.Vertex3(mousePosition.x + .51f, 0, mousePosition.z + .51f);
+            GL.Vertex3(mousePosition.x - .49f, 0, mousePosition.z + .51f);
+
+            GL.End();
+        }
+
+        if (points.Count > 0)
+        {
+            GL.Begin(GL.QUADS);            
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                GL.Color(points[i].Color);
+                GL.Vertex3(points[i].Position.x - .49f, 0, points[i].Position.z - .48f);
+                GL.Vertex3(points[i].Position.x + .51f, 0, points[i].Position.z - .48f);
+                GL.Vertex3(points[i].Position.x + .51f, 0, points[i].Position.z + .51f);
+                GL.Vertex3(points[i].Position.x - .49f, 0, points[i].Position.z + .51f);
+            }
+
+            GL.End();
+        }
+
         GL.Begin(GL.LINES);
 
         GL.Color(mainColor);
@@ -97,37 +128,6 @@ public class GridOverlay : MonoBehaviour
         }
 
         GL.End();
-
-        if (IsInField())
-        {
-            GL.Begin(GL.QUADS);
-
-            GL.Color(RectColor);
-
-            GL.Vertex3(mousePosition.x - .5f, 0, mousePosition.z - .5f);
-            GL.Vertex3(mousePosition.x + .5f, 0, mousePosition.z - .5f);
-            GL.Vertex3(mousePosition.x + .5f, 0, mousePosition.z + .5f);
-            GL.Vertex3(mousePosition.x - .5f, 0, mousePosition.z + .5f);
-
-            GL.End();
-        }
-
-        if (points.Count > 0)
-        {
-            GL.Begin(GL.QUADS);
-
-            GL.Color(mainColor);
-
-            for (int i = 0; i < points.Count; i++)
-            {
-                GL.Vertex3(points[i].x - .5f, 0 , points[i].z - .5f);
-                GL.Vertex3(points[i].x + .5f, 0, points[i].z - .5f);
-                GL.Vertex3(points[i].x + .5f, 0, points[i].z + .5f);
-                GL.Vertex3(points[i].x - .5f, 0, points[i].z + .5f);
-            }
-
-            GL.End();
-        }
     }
 
     public bool IsInField()
