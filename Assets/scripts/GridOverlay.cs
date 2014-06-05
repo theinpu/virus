@@ -31,6 +31,24 @@ public class GridOverlay : MonoBehaviour
         return true;
     }
 
+    public bool Occupy(Color color)
+    {
+        var point = new GridPoint(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight), color);
+        var id = points.IndexOf(point);        
+        if(id == -1) return false;
+        var c = points[id].Color;
+        return c.r == color.r && c.g == color.g && c.b == color.b;
+    }
+
+    public bool RemovePoint()
+    {
+        var point = new GridPoint(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight), Color.white);
+        var id = points.IndexOf(point);
+        if (id == -1) return false;
+        points.RemoveAt(id);
+        return true;
+    }
+
     void Start()
     {
         GameGlobal = FindObjectOfType<GameGlobalScript>();
@@ -140,4 +158,5 @@ public class GridOverlay : MonoBehaviour
     {
         return fieldRect.Contains(new Vector2(FieldPoint.X, FieldPoint.Y));
     }
+
 }

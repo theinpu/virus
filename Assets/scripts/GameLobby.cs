@@ -32,12 +32,22 @@ public class GameLobby : MonoBehaviour
     {
         if (state == 1)
         {
-            if (Input.GetMouseButtonUp(0) && grid.IsInField() && playerClicks < GameGlobalScript.MaxCells)
+            if (Input.GetMouseButtonUp(0) && grid.IsInField())
             {
-                gameGlobal.PlayerSetting[playerSettingsCurrent].StartingPosition[playerClicks] = grid.FieldPoint;                
-                if (grid.AddPoint(playerColors[playerSettingsCurrent]))
+                if (grid.AddPoint(playerColors[playerSettingsCurrent]) && playerClicks < GameGlobalScript.MaxCells)
                 {
+                    gameGlobal.PlayerSetting[playerSettingsCurrent].StartingPosition[playerClicks] = grid.FieldPoint;
                     playerClicks++;
+                }
+                else
+                {
+                    if (grid.Occupy(playerColors[playerSettingsCurrent]))
+                    {
+                        if (grid.RemovePoint())
+                        {
+                            playerClicks--;
+                        }
+                    }
                 }
             }
         }
