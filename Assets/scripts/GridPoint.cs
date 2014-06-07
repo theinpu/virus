@@ -3,18 +3,18 @@ using UnityEngine;
 
 public class GridPoint : IEquatable<GridPoint>
 {
-    public Vector3 Position;
+    public Point Point;
     public Color Color;
 
-    public GridPoint(Vector3 position, Color color)
+    public GridPoint(Point point, Color color)
     {
-        Position = position;
+        Point = point;
         Color = color;
         Color.a = 0.7f;
     }
 
     public bool Equals(GridPoint other)
     {
-        return other.Position == Position;
+        return Equals(other.Point, Point);
     }
 }

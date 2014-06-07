@@ -14,10 +14,8 @@ public class GameField : MonoBehaviour
     public int Width;
     public int Height;
 
-    public int halfWidth;
-    public int halfHeight;
-
-    public float TimeScale = 10f;
+    public float halfWidth;
+    public float halfHeight;
 
     public VirusCell[] VirusGrid;
 
@@ -34,7 +32,7 @@ public class GameField : MonoBehaviour
         Height = gameGlobal.GameSettings.FieldHeight;
 
         var dist = Mathf.Max(Width, Height);
-        Camera.main.transform.position = new Vector3(0, dist + 3f, 0);
+        Camera.main.transform.position = new Vector3(0, dist, 0);
 
         PlayerCount = gameGlobal.PlayerCount;
         PlayerCellCount = new int[PlayerCount];
@@ -48,11 +46,11 @@ public class GameField : MonoBehaviour
 
         VirusGrid = new VirusCell[Height * Width];
 
-        halfWidth = Width / 2;
-        halfHeight = Height / 2;
+        halfWidth = Width / 2f;
+        halfHeight = Height / 2f;
 
         InitFirstPopulation();
-        Time.timeScale = TimeScale;
+        Time.timeScale = gameGlobal.GameSettings.TimeScale;
     }
 
     // Update is called once per frame
@@ -71,13 +69,12 @@ public class GameField : MonoBehaviour
 
     void OnGUI()
     {
-        Time.timeScale = GUI.HorizontalSlider(new Rect(Screen.width / 2 - 100, 10, 200, 50), Time.timeScale, 10F, 100F);
         for (int i = 0, c = gameGlobal.PlayerCount; i < c; i++)
         {
-            Info[i].text = "Population: " + PlayerCellCount[i]
-                           + "\nS:" + gameGlobal.PlayerSetting[i].Strength
+            Info[i].text = "Population: " + PlayerCellCount[i];
+            /*+ "\nS:" + gameGlobal.PlayerSetting[i].Strength
                            + "\nE:" + gameGlobal.PlayerSetting[i].Endurance
-                           + "\nD:" + gameGlobal.PlayerSetting[i].Dexterity;
+                           + "\nD:" + gameGlobal.PlayerSetting[i].Dexterity;*/
         }
     }
 
@@ -151,17 +148,17 @@ public class GameField : MonoBehaviour
         }
     }
 
-    private void NewCell(int x, int y)
+    private void NewCell(float x, float y)
     {
         var cell =
                 (VirusCell)
-                    ((GameObject)Instantiate(Cell, new Vector3(x - halfWidth, 0f, y - halfHeight), Quaternion.identity))
+                    ((GameObject)Instantiate(Cell, new Vector3(x - halfWidth + 0.5f, 0f, y - halfHeight + 0.5f), Quaternion.identity))
                         .GetComponent(typeof(VirusCell));
 
         cell.IsAlive = false;
         cell.PlayerNumber = PlayerNumber.None;
-        cell.X = x;
-        cell.Y = y;
+        cell.X = (int)x;
+        cell.Y = (int)y;
 
         cell.Strength = 0;
         cell.Endurance = 0;
@@ -172,7 +169,7 @@ public class GameField : MonoBehaviour
 
         cell.GameField = this;
 
-        VirusGrid[y * Width + x] = cell;
+        VirusGrid[cell.Y * Width + cell.X] = cell;
     }
 
     private void CreatePlayerCell(int id)

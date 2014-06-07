@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class GameLobby : MonoBehaviour
 {
+    public GUISkin Skin;
+
     private GameGlobalScript gameGlobal;
     private GridOverlay grid;
 
@@ -11,6 +13,8 @@ public class GameLobby : MonoBehaviour
     private int playerClicks = 0;
 
     private const float Epsilon = 0.0001f;
+
+    private int gameSpeed = 1;
 
     private Color[] playerColors =
     {
@@ -30,23 +34,24 @@ public class GameLobby : MonoBehaviour
 
     void Update()
     {
-        if (state == 1)
+        if (state != 1) return;
+        if (Input.GetMouseButtonUp(0) && grid.IsInField())
         {
-            if (Input.GetMouseButtonUp(0) && grid.IsInField())
+            if (grid.Occupy(playerColors[playerSettingsCurrent]))
             {
-                if (grid.AddPoint(playerColors[playerSettingsCurrent]) && playerClicks < GameGlobalScript.MaxCells)
+                if (grid.RemovePoint())
                 {
-                    gameGlobal.PlayerSetting[playerSettingsCurrent].StartingPosition[playerClicks] = grid.FieldPoint;
-                    playerClicks++;
+                    playerClicks--;
                 }
-                else
+            }
+            else
+            {
+                if (playerClicks < GameGlobalScript.MaxCells)
                 {
-                    if (grid.Occupy(playerColors[playerSettingsCurrent]))
+                    if (grid.AddPoint(playerColors[playerSettingsCurrent]))
                     {
-                        if (grid.RemovePoint())
-                        {
-                            playerClicks--;
-                        }
+                        gameGlobal.PlayerSetting[playerSettingsCurrent].StartingPosition[playerClicks] = grid.FieldPoint;
+                        playerClicks++;
                     }
                 }
             }
@@ -55,6 +60,9 @@ public class GameLobby : MonoBehaviour
 
     void OnGUI()
     {
+        //#if UNITY_ANDROID
+        GUI.skin = Skin;
+        //#endif
         switch (state)
         {
             case 0:
@@ -75,20 +83,33 @@ public class GameLobby : MonoBehaviour
 
     void DrawDefaultScreen()
     {
-        GUI.Label(new Rect(10, 10, 100, 20), "Players: " + gameGlobal.PlayerCount);
-        gameGlobal.PlayerCount = (int)GUI.HorizontalSlider(new Rect(10, 30, 100, 30), gameGlobal.PlayerCount, 2, 4);
+        GUILayout.BeginArea(new Rect(10, 10, 200, Screen.height - 20));
+        GUILayout.BeginVertical();
+        GUILayout.Label("Players: " + gameGlobal.PlayerCount);
+        gameGlobal.PlayerCount = (int)GUILayout.HorizontalSlider(gameGlobal.PlayerCount, 2, 4);
 
-        GUI.Label(new Rect(10, 60, 150, 20), "Game field width: " + gameGlobal.GameSettings.FieldWidth);
-        GUI.Label(new Rect(10, 110, 150, 20), "Game field height: " + gameGlobal.GameSettings.FieldHeight);
+        GUILayout.Label("Game field width: " + gameGlobal.GameSettings.FieldWidth);
+        gameGlobal.GameSettings.FieldWidth = (int)GUILayout.HorizontalSlider(gameGlobal.GameSettings.FieldWidth, 8, 42);
 
-        gameGlobal.GameSettings.FieldWidth = (int)GUI.HorizontalSlider(new Rect(10, 80, 100, 30), gameGlobal.GameSettings.FieldWidth, 8, 42);
-        gameGlobal.GameSettings.FieldHeight = (int)GUI.HorizontalSlider(new Rect(10, 130, 100, 30), gameGlobal.GameSettings.FieldHeight, 8, 42);
+        GUILayout.Label("Game field height: " + gameGlobal.GameSettings.FieldHeight);
+        gameGlobal.GameSettings.FieldHeight = (int)GUILayout.HorizontalSlider(gameGlobal.GameSettings.FieldHeight, 8, 42);
 
-        var dist = Mathf.Max(gameGlobal.GameSettings.FieldWidth, gameGlobal.GameSettings.FieldHeight);
-        Camera.main.transform.position = new Vector3(0, dist + 3f, 0);
+        var speed = "Normal";
+        if (gameSpeed == 1) speed = "Fast";
+        if (gameSpeed == 2) speed = "Faster";
+        if (gameSpeed == 3) speed = "Fastest";
+        GUILayout.Label("Game speed: " + speed);
+        gameSpeed = (int)GUILayout.HorizontalSlider(gameSpeed, 0, 3);
+        gameGlobal.GameSettings.TimeScale = (gameSpeed + 1) * 10f;
+
+        var dist = Mathf.Max(gameGlobal.GameSettings.FieldWidth, gameGlobal.GameSettings.FieldHeight) + 3f;
+        Camera.main.transform.position = new Vector3(0, dist, 0);
         grid.Reset();
+        var middle = 210f + (Screen.width - 210) / 2f;
+        var p = Camera.main.ScreenToWorldPoint(new Vector3(middle, Screen.height / 2f, dist));
+        Camera.main.transform.position = new Vector3(-p.x, dist, 0);
 
-        if (GUI.Button(new Rect(10, 200, 100, 30), "Next"))
+        if (GUILayout.Button("Next"))
         {
             gameGlobal.InitPlayerSettings();
 
@@ -97,13 +118,17 @@ public class GameLobby : MonoBehaviour
 
             grid.RectColor = playerColors[0];
         }
+        GUILayout.EndVertical();
+        GUILayout.EndArea();
     }
 
     void DrawPlayerParamsScreen()
     {
+        GUILayout.BeginArea(new Rect(10, 10, 200, Screen.height - 20));
+        GUILayout.BeginVertical();
         if (playerSettingsCurrent < gameGlobal.PlayerCount)
         {
-            GUI.Label(new Rect(10, 10, 100, 20), "Player " + (playerSettingsCurrent + 1) + " settings");
+            GUILayout.Label("Player " + (playerSettingsCurrent + 1) + " settings");
             var strength = gameGlobal.PlayerSetting[playerSettingsCurrent].Strength;
             var endurance = gameGlobal.PlayerSetting[playerSettingsCurrent].Endurance;
             var dexterity = gameGlobal.PlayerSetting[playerSettingsCurrent].Dexterity;
@@ -113,18 +138,22 @@ public class GameLobby : MonoBehaviour
             var lifeCycle = Mathf.Floor((maxAgeRep - minAgeRep) / PlayerSetting.BoundsMultiplier + 0.5f);
             var unspentPoints = PlayerSetting.MaxPoint - lifeCycle - strength - endurance - dexterity;
 
-            GUI.Label(new Rect(10, 30, 100, 20), "Cells left: " + (5 - playerClicks));
-            GUI.Label(new Rect(10, 50, 150, 30), "Power: " + (int)strength);
-            GUI.Label(new Rect(10, 90, 150, 30), "Vitality: " + (int)endurance);
-            GUI.Label(new Rect(10, 130, 150, 30), "Speed: " + (int)dexterity);
-            GUI.Label(new Rect(10, 170, 150, 30), "Rep age min: " + (int)minAgeRep + "%");
-            GUI.Label(new Rect(10, 210, 150, 30), "Rep age max: " + (int)maxAgeRep + "%");
+            GUILayout.Label("Cells left: " + (5 - playerClicks));
 
-            var newStrength = (int)GUI.HorizontalSlider(new Rect(10, 70, 100, 30), (int)strength, 1f, PlayerSetting.MaxStat);
-            var newEndurance = (int)GUI.HorizontalSlider(new Rect(10, 110, 100, 30), (int)endurance, 1f, PlayerSetting.MaxStat);
-            var newDexterity = (int)GUI.HorizontalSlider(new Rect(10, 150, 100, 30), (int)dexterity, 1f, PlayerSetting.MaxStat);
-            var newMinAge = (int)GUI.HorizontalSlider(new Rect(10, 190, 100, 30), (int)minAgeRep, 10f, 90f);
-            var newMaxAge = (int)GUI.HorizontalSlider(new Rect(10, 230, 100, 30), (int)maxAgeRep, 10f, 90f);
+            GUILayout.Label("Power: " + (int)strength);
+            var newStrength = (int)GUILayout.HorizontalSlider((int)strength, 1f, PlayerSetting.MaxStat);
+
+            GUILayout.Label("Vitality: " + (int)endurance);
+            var newEndurance = (int)GUILayout.HorizontalSlider((int)endurance, 1f, PlayerSetting.MaxStat);
+
+            GUILayout.Label("Speed: " + (int)dexterity);
+            var newDexterity = (int)GUILayout.HorizontalSlider((int)dexterity, 1f, PlayerSetting.MaxStat);
+
+            GUILayout.Label("Rep age min: " + (int)minAgeRep + "%");
+            var newMinAge = (int)GUILayout.HorizontalSlider((int)minAgeRep, 10f, 90f);
+
+            GUILayout.Label("Rep age max: " + (int)maxAgeRep + "%");
+            var newMaxAge = (int)GUILayout.HorizontalSlider((int)maxAgeRep, 10f, 90f);
 
             if (Math.Abs(strength - newStrength) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Strength = newStrength;
             if (Math.Abs(endurance - newEndurance) > Epsilon) gameGlobal.PlayerSetting[playerSettingsCurrent].Endurance = newEndurance;
@@ -134,7 +163,14 @@ public class GameLobby : MonoBehaviour
 
             gameGlobal.PlayerSetting[playerSettingsCurrent].Normalize();
 
-            if (GUI.Button(new Rect(10, 260, 100, 30), "Next"))
+            var nextButtonText = "Next";
+            if (playerSettingsCurrent == gameGlobal.PlayerCount - 1)
+            {
+                nextButtonText = "Start Game";
+            }
+
+            if (playerClicks < 5) GUI.enabled = false;
+            if (GUILayout.Button(nextButtonText))
             {
                 if (playerClicks < 5) return;
 
@@ -145,13 +181,15 @@ public class GameLobby : MonoBehaviour
                     grid.RectColor = playerColors[playerSettingsCurrent];
                 }
             }
+            GUI.enabled = true;
         }
         else
         {
-            state++;
-
             grid.Visible = false;
+            Application.LoadLevel("gameScene");
         }
+        GUILayout.EndVertical();
+        GUILayout.EndArea();
     }
 
     void DrawStartPositionSelect()

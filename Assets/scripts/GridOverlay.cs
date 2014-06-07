@@ -11,18 +11,18 @@ public class GridOverlay : MonoBehaviour
 
     private Material lineMaterial;
 
-    private Color mainColor = new Color(0f, .75f, 0f, .75f);    
-    private int halfWidth;
-    private int halfHeight;
+    private Color mainColor = new Color(0f, .75f, 0f, .75f);
     private Vector3 mousePosition;
     private Plane plane;
     private Rect fieldRect;
 
     private List<GridPoint> points = new List<GridPoint>();
+    private float offsetX;
+    private float offsetY;
 
     public bool AddPoint(Color color)
     {
-        var point = new GridPoint(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight), color);
+        var point = new GridPoint(FieldPoint, color);
         if (points.Contains(point))
         {
             return false;
@@ -33,16 +33,16 @@ public class GridOverlay : MonoBehaviour
 
     public bool Occupy(Color color)
     {
-        var point = new GridPoint(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight), color);
-        var id = points.IndexOf(point);        
-        if(id == -1) return false;
-        var c = points[id].Color;
+        var point = new GridPoint(FieldPoint, color);
+        var id = points.IndexOf(point);
+        if (id == -1) return false;
+        var c = points[id].Color;        
         return c.r == color.r && c.g == color.g && c.b == color.b;
     }
 
     public bool RemovePoint()
     {
-        var point = new GridPoint(new Vector3(FieldPoint.X - halfWidth, 0, FieldPoint.Y - halfHeight), Color.white);
+        var point = new GridPoint(FieldPoint, Color.white);
         var id = points.IndexOf(point);
         if (id == -1) return false;
         points.RemoveAt(id);
@@ -52,21 +52,16 @@ public class GridOverlay : MonoBehaviour
     void Start()
     {
         GameGlobal = FindObjectOfType<GameGlobalScript>();
-        //halfWidth = GameGlobal.GameSettings.FieldWidth / 2;
-        //halfHeight = GameGlobal.GameSettings.FieldHeight / 2;
 
         plane = new Plane(Vector3.up, 0);
-
-        //fieldRect = new Rect(0, 0, GameGlobal.GameSettings.FieldWidth, GameGlobal.GameSettings.FieldHeight);
         FieldPoint = new Point();
     }
 
     public void Reset()
     {
-        halfWidth = GameGlobal.GameSettings.FieldWidth / 2;
-        halfHeight = GameGlobal.GameSettings.FieldHeight / 2;
-
         fieldRect = new Rect(0, 0, GameGlobal.GameSettings.FieldWidth, GameGlobal.GameSettings.FieldHeight);
+        offsetX = GameGlobal.GameSettings.FieldWidth / 2f;
+        offsetY = GameGlobal.GameSettings.FieldHeight / 2f;
     }
 
     void CreateLineMaterial()
@@ -92,11 +87,9 @@ public class GridOverlay : MonoBehaviour
         float dist;
         plane.Raycast(ray, out dist);
         mousePosition = ray.GetPoint(dist);
-        mousePosition.x = Mathf.Floor(mousePosition.x + .5f);
-        mousePosition.z = Mathf.Floor(mousePosition.z + .5f);
 
-        FieldPoint.X = (int)mousePosition.x + halfWidth;
-        FieldPoint.Y = (int)mousePosition.z + halfHeight;
+        FieldPoint.X = Mathf.FloorToInt(mousePosition.x + offsetX);
+        FieldPoint.Y = Mathf.FloorToInt(mousePosition.z + offsetY);
     }
 
     void OnPostRender()
@@ -112,10 +105,10 @@ public class GridOverlay : MonoBehaviour
 
             GL.Color(RectColor);
 
-            GL.Vertex3(mousePosition.x - .49f, 0, mousePosition.z - .48f);
-            GL.Vertex3(mousePosition.x + .51f, 0, mousePosition.z - .48f);
-            GL.Vertex3(mousePosition.x + .51f, 0, mousePosition.z + .51f);
-            GL.Vertex3(mousePosition.x - .49f, 0, mousePosition.z + .51f);
+            GL.Vertex3(FieldPoint.X - offsetX, 0, FieldPoint.Y - offsetY);
+            GL.Vertex3(FieldPoint.X - offsetX + 1f, 0, FieldPoint.Y - offsetY);
+            GL.Vertex3(FieldPoint.X - offsetX + 1f, 0, FieldPoint.Y - offsetY + 1f);
+            GL.Vertex3(FieldPoint.X - offsetX, 0, FieldPoint.Y - offsetY + 1f);
 
             GL.End();
         }
@@ -127,10 +120,10 @@ public class GridOverlay : MonoBehaviour
             for (int i = 0; i < points.Count; i++)
             {
                 GL.Color(points[i].Color);
-                GL.Vertex3(points[i].Position.x - .49f, 0, points[i].Position.z - .48f);
-                GL.Vertex3(points[i].Position.x + .51f, 0, points[i].Position.z - .48f);
-                GL.Vertex3(points[i].Position.x + .51f, 0, points[i].Position.z + .51f);
-                GL.Vertex3(points[i].Position.x - .49f, 0, points[i].Position.z + .51f);
+                GL.Vertex3(points[i].Point.X - offsetX, 0, points[i].Point.Y - offsetY);
+                GL.Vertex3(points[i].Point.X - offsetX + 1f, 0, points[i].Point.Y - offsetY);
+                GL.Vertex3(points[i].Point.X - offsetX + 1f, 0, points[i].Point.Y - offsetY + 1f);
+                GL.Vertex3(points[i].Point.X - offsetX, 0, points[i].Point.Y - offsetY + 1f);
             }
 
             GL.End();
@@ -140,15 +133,15 @@ public class GridOverlay : MonoBehaviour
 
         GL.Color(mainColor);
 
-        for (float i = -halfWidth - 0.5f; i < halfWidth + 0.5f; i++)
+        for (float i = 0; i <= GameGlobal.GameSettings.FieldWidth; i++)
         {
-            GL.Vertex3(i, 0, -halfHeight - 0.5f);
-            GL.Vertex3(i, 0, halfHeight - 0.5f);
+            GL.Vertex3(i - offsetX, 0, -offsetY);
+            GL.Vertex3(i - offsetX, 0, offsetY);
         }
-        for (float i = -halfHeight - 0.5f; i < halfHeight + 0.5f; i++)
+        for (float i = 0; i <= GameGlobal.GameSettings.FieldHeight; i++)
         {
-            GL.Vertex3(-halfWidth - 0.5f, 0, i);
-            GL.Vertex3(halfWidth - 0.5f, 0, i);
+            GL.Vertex3(-offsetX, 0, i - offsetY);
+            GL.Vertex3(offsetX, 0, i - offsetY);
         }
 
         GL.End();
